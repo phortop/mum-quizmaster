@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Mum's Quizmaster</title>
+<style>
+  :root {
+    --cream:   #fdf8f0;
+    --warm:    #f5ede0;
+    --gold:    #c8961e;
+    --gold2:   #e8b830;
+    --green:   #4a7c59;
+    --green2:  #3a6347;
+    --text:    #2c2416;
+    --muted:   #7a6a52;
+    --correct: #2e7d32;
+    --wrong:   #c62828;
+    --radius:  16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+  html, body {
+    height: 100%; background: var(--cream);
+    font-family: Georgia, 'Times New Roman', serif;
+    color: var(--text); overflow-x: hidden;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; min-height: 100vh; padding: 24px 20px 40px; }
+  .screen.active { display: flex; flex-direction: column; align-items: center; }
+
+  /* ── WELCOME ── */
+  #welcome { justify-content: center; gap: 20px; text-align: center; }
+  .owl { font-size: 72px; line-height: 1; }
+  #welcome h1 { font-size: 2.1em; color: var(--green2); line-height: 1.2; }
+  #welcome p  { font-size: 1.15em; color: var(--muted); max-width: 340px; }
+  #welcome .begin-btn {
+    margin-top: 10px;
+    background: var(--green); color: #fff;
+    border: none; border-radius: var(--radius);
+    padding: 22px 48px; font-size: 1.4em;
+    font-family: inherit; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(74,124,89,.35);
+    transition: background .2s;
+  }
+  #welcome .begin-btn:active { background: var(--green2); }
+
+  /* ── VOICE PICKER ── */
+  .voice-row {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--warm); border-radius: 12px;
+    padding: 12px 16px; width: 100%; max-width: 420px;
+    font-size: 1em; color: var(--muted);
+  }
+  .voice-row label { white-space: nowrap; }
+  .voice-row select {
+    flex: 1; border: 1px solid #d9c9a8; border-radius: 8px;
+    padding: 8px 10px; font-family: inherit; font-size: 1em;
+    background: #fff; color: var(--text);
+  }
+  .voice-row button {
+    background: var(--gold); color: #fff; border: none;
+    border-radius: 8px; padding: 8px 14px; font-size: 1.1em;
+    cursor: pointer;
+  }
+  .voice-row button:active { background: #a87818; }
+
+  /* ── TOPIC PICKER ── */
+  #topics { gap: 16px; }
+  #topics h2 { font-size: 1.7em; color: var(--green2); text-align: center; margin-bottom: 4px; }
+  #topics p  { color: var(--muted); text-align: center; margin-bottom: 8px; }
+  .topic-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 14px; width: 100%; max-width: 480px;
+  }
+  .topic-btn {
+    background: #fff; border: 2px solid #e0d4b8;
+    border-radius: var(--radius); padding: 22px 10px;
+    text-align: center; cursor: pointer;
+    font-family: inherit; transition: all .2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,.07);
+  }
+  .topic-btn:active { background: var(--warm); border-color: var(--gold); transform: scale(.97); }
+  .topic-icon { font-size: 2.2em; display: block; margin-bottom: 8px; }
+  .topic-name { font-size: 1em; font-weight: bold; color: var(--green2); }
+  .topic-sub  { font-size: .82em; color: var(--muted); margin-top: 3px; }
+
+  /* ── LOADING ── */
+  #loading { justify-content: center; gap: 20px; text-align: center; }
+  .spinner {
+    width: 64px; height: 64px;
+    border: 6px solid #e0d4b8;
+    border-top-color: var(--green);
+    border-radius: 50%;
+    animation: spin .9s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loading h2 { font-size: 1.5em; color: var(--green2); }
+  #loading p  { color: var(--muted); font-size: 1.05em; max-width: 300px; }
+
+  /* ── QUIZ ── */
+  #quiz { gap: 0; padding-top: 16px; }
+  .quiz-header {
+    width: 100%; max-width: 560px;
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .quiz-header .back-btn {
+    background: none; border: 1px solid #d9c9a8;
+    border-radius: 8px; padding: 8px 14px;
+    font-family: inherit; font-size: .95em; cursor: pointer; color: var(--muted);
+  }
+  .progress-bar {
+    flex: 1; height: 10px; background: #e0d4b8;
+    border-radius: 5px; margin: 0 12px; overflow: hidden;
+  }
+  .progress-fill { height: 100%; background: var(--green); border-radius: 5px; transition: width .4s; }
+  .q-counter { font-size: .95em; color: var(--muted); white-space: nowrap; }
+
+  .q-card {
+    background: #fff; border-radius: 20px;
+    padding: 28px 24px; width: 100%; max-width: 560px;
+    box-shadow: 0 4px 20px rgba(0,0,0,.1);
+    margin-bottom: 16px;
+  }
+  .q-text { font-size: 1.25em; line-height: 1.5; color: var(--text); margin-bottom: 6px; }
+  .speak-btn {
+    background: none; border: 1px solid #d9c9a8;
+    border-radius: 8px; padding: 6px 14px;
+    font-size: 1.1em; cursor: pointer; margin-top: 6px;
+    color: var(--muted);
+  }
+  .speak-btn:active { background: var(--warm); }
+
+  .options { width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 12px; }
+  .opt-btn {
+    background: #fff; border: 2px solid #e0d4b8;
+    border-radius: var(--radius); padding: 18px 20px;
+    text-align: left; font-family: inherit; font-size: 1.05em;
+    cursor: pointer; transition: all .15s;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05); color: var(--text);
+  }
+  .opt-btn:active:not([disabled]) { transform: scale(.98); background: var(--warm); }
+  .opt-btn.correct { background: #e8f5e9; border-color: var(--correct); color: var(--correct); }
+  .opt-btn.wrong   { background: #ffebee; border-color: var(--wrong);   color: var(--wrong);   }
+  .opt-btn[disabled] { cursor: default; }
+
+  /* ── FEEDBACK ── */
+  .feedback-box {
+    width: 100%; max-width: 560px;
+    border-radius: 16px; padding: 20px 22px;
+    margin-top: 4px; display: none;
+    animation: fadeIn .3s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .feedback-box.correct-fb { background: #e8f5e9; border: 2px solid #81c784; }
+  .feedback-box.wrong-fb   { background: #ffebee; border: 2px solid #e57373; }
+  .fb-reaction { font-size: 1.6em; margin-bottom: 4px; }
+  .fb-message  { font-size: 1.05em; font-weight: bold; margin-bottom: 8px; }
+  .fb-fact     { font-size: .98em; color: #444; line-height: 1.5; }
+  .fb-speak-btn {
+    background: none; border: 1px solid #aaa;
+    border-radius: 8px; padding: 6px 14px;
+    font-size: 1.05em; cursor: pointer; margin-top: 10px; color: #555;
+  }
+  .next-btn {
+    width: 100%; max-width: 560px;
+    background: var(--green); color: #fff;
+    border: none; border-radius: var(--radius);
+    padding: 20px; font-family: inherit; font-size: 1.2em;
+    cursor: pointer; margin-top: 12px; display: none;
+    box-shadow: 0 4px 14px rgba(74,124,89,.3);
+  }
+  .next-btn:active { background: var(--green2); }
+
+  /* ── RESULTS ── */
+  #results { justify-content: center; gap: 20px; text-align: center; }
+  .score-circle {
+    width: 140px; height: 140px;
+    border-radius: 50%; border: 8px solid var(--gold);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: var(--warm);
+  }
+  .score-num  { font-size: 2.8em; color: var(--gold); font-weight: bold; line-height: 1; }
+  .score-denom{ font-size: 1.1em; color: var(--muted); }
+  #results h2 { font-size: 1.7em; color: var(--green2); }
+  #results p  { font-size: 1.1em; color: var(--muted); max-width: 340px; }
+  .result-btns { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 380px; }
+  .result-btns button {
+    border: none; border-radius: var(--radius);
+    padding: 20px; font-family: inherit; font-size: 1.15em;
+    cursor: pointer;
+  }
+  #playAgainBtn { background: var(--green); color: #fff; box-shadow: 0 4px 14px rgba(74,124,89,.3); }
+  #playAgainBtn:active { background: var(--green2); }
+  #chooseTopicBtn { background: var(--warm); color: var(--green2); border: 2px solid #d9c9a8 !important; }
+  #chooseTopicBtn:active { background: #ede3d0; }
+
+  /* ── UTILITY ── */
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ WELCOME ══════════════ -->
+<div id="welcome" class="screen active">
+  <div class="owl">🦉</div>
+  <h1>Mum's<br>Quizmaster</h1>
+  <p>Six topics, fresh questions every time — and I'll read them aloud for you!</p>
+
+  <div class="voice-row">
+    <label>🔊 Voice:</label>
+    <select id="voicePicker"></select>
+    <button id="testVoiceBtn">Test</button>
+  </div>
+
+  <button class="begin-btn" id="beginBtn">Let's Begin!</button>
+</div>
+
+<!-- ══════════════ TOPICS ══════════════ -->
+<div id="topics" class="screen">
+  <h2>Choose a Topic</h2>
+  <p>Tap a card to start a new quiz</p>
+  <div class="topic-grid" id="topicGrid"></div>
+</div>
+
+<!-- ══════════════ LOADING ══════════════ -->
+<div id="loading" class="screen">
+  <div class="spinner"></div>
+  <h2>Thinking up your questions…</h2>
+  <p id="loadingTopicName">Just a moment, getting things ready!</p>
+</div>
+
+<!-- ══════════════ QUIZ ══════════════ -->
+<div id="quiz" class="screen">
+  <div class="quiz-header">
+    <button class="back-btn" id="backBtn">← Topics</button>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <span class="q-counter" id="qCounter">1 / 10</span>
+  </div>
+
+  <div class="q-card">
+    <div class="q-text" id="qText"></div>
+    <button class="speak-btn" id="speakQBtn">🔊 Read question</button>
+  </div>
+
+  <div class="options" id="optionsEl"></div>
+
+  <div class="feedback-box" id="feedbackBox">
+    <div class="fb-reaction" id="fbReaction"></div>
+    <div class="fb-message"  id="fbMessage"></div>
+    <div class="fb-fact"     id="fbFact"></div>
+    <button class="fb-speak-btn" id="speakFbBtn">🔊 Read feedback</button>
+  </div>
+
+  <button class="next-btn" id="nextBtn">Next Question →</button>
+</div>
+
+<!-- ══════════════ RESULTS ══════════════ -->
+<div id="results" class="screen">
+  <div class="score-circle">
+    <span class="score-num"  id="scoreNum">0</span>
+    <span class="score-denom" id="scoreDenom">out of 10</span>
+  </div>
+  <h2 id="resultsTitle">Well done!</h2>
+  <p  id="resultsMsg"></p>
+  <div class="result-btns">
+    <button id="playAgainBtn">Play Again 🎉</button>
+    <button id="chooseTopicBtn">Choose Another Topic</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════
+const TOPICS = [
+  { id: 'garden',   icon: '🌹', name: 'Gardening',        sub: 'Flowers, tasks & gardens' },
+  { id: 'history',  icon: '👑', name: 'English History',   sub: 'Kings, queens & great events' },
+  { id: 'houses',   icon: '🏰', name: 'Historic Houses',   sub: 'Castles & country houses' },
+  { id: 'radio4',   icon: '📻', name: 'BBC Radio 4',       sub: 'The Archers & favourites' },
+  { id: 'nature',   icon: '🦔', name: 'Nature & Wildlife', sub: 'Birds, flowers & seasons' },
+  { id: 'northeast',icon: '⛪', name: 'The North East',    sub: 'Newcastle, Durham & more' },
+];
+
+// Fallback questions (used if API call fails)
+const FALLBACK = {
+  garden: [
+    {q:"Which rose is often called the 'Queen of the Garden'?",opts:["Rosa canina","Rosa 'Peace'","Rosa moyesii","Rosa 'Iceberg'"],ans:1,praise:"Quite right — beautifully remembered!",comfort:"Never mind — it's the 'Peace' rose, introduced after World War II.",fact:"The 'Peace' rose was introduced in 1945 and given its hopeful name to mark the end of World War II. It was the first rose to be named by a committee, reflecting the international effort to celebrate peace."},
+    {q:"What does 'deadheading' mean in gardening?",opts:["Planting in autumn","Removing spent blooms","Pruning in winter","Staking tall plants"],ans:1,praise:"Spot on — well done you!",comfort:"Not quite — deadheading means removing old flower heads to encourage more blooms.",fact:"Deadheading encourages plants to put their energy into producing more flowers rather than setting seed. It's one of the most rewarding garden tasks and can extend the flowering season by weeks."},
+    {q:"Which famous garden designer created the 'natural landscape' style?",opts:["Gertrude Jekyll","Capability Brown","Alan Titchmarsh","Vita Sackville-West"],ans:1,praise:"Excellent — Capability Brown indeed!",comfort:"The answer is Capability Brown, who shaped hundreds of English estates.",fact:"Lancelot 'Capability' Brown earned his nickname from his habit of saying estates had 'great capability' for improvement. He designed over 170 parks and gardens across England in the 18th century."},
+    {q:"At which famous garden show is the Best in Show garden awarded each year?",opts:["Hampton Court","Chatsworth","Chelsea","Tatton Park"],ans:2,praise:"Absolutely right — Chelsea it is!",comfort:"It's the Chelsea Flower Show, held in May in the grounds of the Royal Hospital Chelsea.",fact:"The Chelsea Flower Show has been held since 1913 and is one of the most prestigious horticultural events in the world. The Queen was a regular visitor for many decades."},
+    {q:"Which vegetable is traditionally the first to be sown in a kitchen garden in spring?",opts:["Runner beans","Broad beans","Tomatoes","Courgettes"],ans:1,praise:"Quite right — broad beans are the brave early ones!",comfort:"Broad beans are the answer — they can be sown in autumn or early spring.",fact:"Broad beans are one of the hardiest vegetables and can even be sown in autumn to overwinter. They were one of the few beans known in Europe before the Americas were discovered."},
+    {q:"What is the Chelsea Pensioners' garden famous for?",opts:["Its herb maze","Its rose arbour","Its kitchen garden","Its tulip display"],ans:1,praise:"Lovely — well remembered!",comfort:"It's the rose arbour in the grounds of the Royal Hospital Chelsea.",fact:"The Royal Hospital Chelsea, home of the Chelsea Pensioners, has beautiful grounds that form the setting for the world-famous Chelsea Flower Show each May."},
+    {q:"Which climbing plant is famous for its fragrant purple flowers in early summer?",opts:["Clematis","Honeysuckle","Wisteria","Virginia Creeper"],ans:2,praise:"Perfectly right — wisteria!",comfort:"Wisteria is the answer — those beautiful cascades of purple.",fact:"Wisteria can live for hundreds of years and the oldest known specimen in Britain, at Maidstone in Kent, is thought to be over 200 years old. Its flowers are wonderfully fragrant."},
+    {q:"What does RHS stand for?",opts:["Royal Horticulture Society","Royal Horticultural Society","Royal House & Shrub","Regional Horticultural Service"],ans:1,praise:"Quite right — well done!",comfort:"RHS stands for the Royal Horticultural Society, founded in 1804.",fact:"The Royal Horticultural Society was founded in 1804 and has over 700,000 members. It runs famous gardens at Wisley, Rosemoor, Hyde Hall, and Harlow Carr."},
+    {q:"Which flower is the symbol of Remembrance Sunday?",opts:["Lily","Poppy","Bluebell","Cornflower"],ans:1,praise:"Of course — the poppy!",comfort:"The poppy is our symbol of remembrance, inspired by the fields of Flanders.",fact:"The red poppy became the symbol of remembrance after World War I, inspired by the poem 'In Flanders Fields' by Lieutenant Colonel John McCrae, who wrote of poppies growing over the graves of fallen soldiers."},
+    {q:"What is 'hardening off' in gardening?",opts:["Drying out compost","Gradually acclimatising seedlings to outdoor conditions","Adding grit to soil","Pruning woody stems"],ans:1,praise:"Exactly right — very good!",comfort:"Hardening off means gradually getting seedlings used to outdoor conditions before planting out.",fact:"Hardening off is important because seedlings grown indoors are used to warm, sheltered conditions. Moving them outside suddenly can shock them — so gardeners put them outside for a little longer each day over a week or two."},
+  ],
+  history: [
+    {q:"In which year did the Battle of Hastings take place?",opts:["1042","1066","1087","1100"],ans:1,praise:"Quite right — 1066, a date everyone knows!",comfort:"1066 is the year — one of the most famous dates in English history.",fact:"The Battle of Hastings on 14th October 1066 changed England forever. William the Conqueror defeated King Harold, who famously died in the battle — though whether it was an arrow in the eye remains debated by historians."},
+    {q:"Which queen ruled England for 63 years in the 19th century?",opts:["Mary I","Anne","Victoria","Elizabeth I"],ans:2,praise:"Queen Victoria — quite right!",comfort:"Queen Victoria reigned from 1837 to 1901 — a remarkable 63 years.",fact:"Queen Victoria came to the throne aged just 18 and reigned for 63 years, the longest of any British monarch until Queen Elizabeth II surpassed her record. She is often associated with the Great Exhibition of 1851 and the expansion of the British Empire."},
+    {q:"What was the name of the nursing heroine of the Crimean War?",opts:["Edith Cavell","Grace Darling","Harriet Martineau","Florence Nightingale"],ans:3,praise:"Florence Nightingale — well remembered!",comfort:"Florence Nightingale was the great nursing reformer of the Crimean War.",fact:"Florence Nightingale became known as 'The Lady with the Lamp' for her nightly rounds of the wards at Scutari. She revolutionised nursing and her work reduced death rates dramatically. She was born in Florence, Italy, and named after the city."},
+    {q:"The Magna Carta was signed in which year?",opts:["1066","1215","1348","1415"],ans:1,praise:"1215 — perfectly correct!",comfort:"The Magna Carta was sealed at Runnymede in 1215.",fact:"The Magna Carta, or 'Great Charter', was sealed by King John at Runnymede in 1215. It established for the first time that the king was subject to the rule of law — a principle that underpins democracy to this day."},
+    {q:"Who was the first female Prime Minister of Great Britain?",opts:["Barbara Castle","Shirley Williams","Margaret Thatcher","Theresa May"],ans:2,praise:"Margaret Thatcher — well done!",comfort:"Margaret Thatcher became Prime Minister in 1979.",fact:"Margaret Thatcher served as Prime Minister from 1979 to 1990, making her the longest-serving PM of the 20th century. Known as 'The Iron Lady', she was the daughter of a Grantham grocer and won a chemistry degree from Oxford."},
+    {q:"In which year did the Great Fire of London occur?",opts:["1605","1666","1707","1745"],ans:1,praise:"1666 — quite right!",comfort:"The Great Fire of London happened in 1666, starting in Pudding Lane.",fact:"The Great Fire of London started in a bakery in Pudding Lane on 2nd September 1666 and burned for three days. It destroyed over 13,000 houses but, remarkably, very few people died. It did lead to the rebuilding of St Paul's Cathedral by Sir Christopher Wren."},
+    {q:"Which English explorer was the first to circumnavigate the globe?",opts:["Walter Raleigh","Francis Drake","John Cabot","Martin Frobisher"],ans:1,praise:"Francis Drake — well done!",comfort:"Francis Drake completed the first English circumnavigation of the globe.",fact:"Sir Francis Drake completed his circumnavigation of the globe between 1577 and 1580, returning to Plymouth Harbour. Queen Elizabeth I knighted him on the deck of his ship, the Golden Hind."},
+    {q:"What were the women who campaigned for the right to vote called?",opts:["Suffragists","Suffragettes","Feminettes","The Women's League"],ans:1,praise:"The suffragettes — quite right!",comfort:"They were called the suffragettes — the more militant campaigners for women's votes.",fact:"The suffragettes, led by Emmeline Pankhurst and her daughters, campaigned vigorously for women's right to vote. British women over 30 won the vote in 1918, and full equal suffrage was granted in 1928."},
+    {q:"At which battle did Nelson defeat the French and Spanish fleets in 1805?",opts:["Battle of the Nile","Battle of Copenhagen","Battle of Trafalgar","Battle of Jutland"],ans:2,praise:"Trafalgar — well remembered!",comfort:"The Battle of Trafalgar in 1805 — Nelson's greatest victory.",fact:"The Battle of Trafalgar on 21st October 1805 secured British naval supremacy for a century. Nelson was fatally wounded during the battle, dying with the words 'Thank God, I have done my duty.' His flagship HMS Victory can still be visited at Portsmouth."},
+    {q:"Which English king signed the Magna Carta?",opts:["Henry II","Richard I","King John","Henry III"],ans:2,praise:"King John — exactly right!",comfort:"King John was reluctantly persuaded to sign the Magna Carta at Runnymede.",fact:"King John is often portrayed as a villain, but the Magna Carta he sealed in 1215 laid the foundations for constitutional government. He only agreed under pressure from his rebellious barons and reportedly wept with rage afterwards."},
+  ],
+};
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+let voices = [];
+let voiceUnlocked = false;
+let currentTopic = null;
+let questions = [];
+let qIndex = 0;
+let score = 0;
+let answered = false;
+
+// ══════════════════════════════════════════════
+//  UTILITIES
+// ══════════════════════════════════════════════
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function stopSpeech() {
+  if (window.speechSynthesis) { window.speechSynthesis.cancel(); }
+}
+
+function getVoice() {
+  const sel = document.getElementById('voicePicker');
+  const idx = parseInt(sel.value, 10);
+  if (!isNaN(idx) && voices[idx]) return voices[idx];
+  return null;
+}
+
+function speak(text) {
+  if (!window.speechSynthesis) return;
+  stopSpeech();
+  const u = new SpeechSynthesisUtterance(text);
+  const v = getVoice();
+  if (v) u.voice = v;
+  u.rate = 0.92;
+  u.pitch = 1.0;
+  try { window.speechSynthesis.speak(u); } catch(e) { console.warn('Speech error:', e); }
+}
+
+function unlockAudio() {
+  if (voiceUnlocked || !window.speechSynthesis) return;
+  try {
+    const u = new SpeechSynthesisUtterance(' ');
+    u.volume = 0;
+    window.speechSynthesis.speak(u);
+    voiceUnlocked = true;
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════════
+//  VOICE PICKER
+// ══════════════════════════════════════════════
+function populateVoices() {
+  voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+  const sel = document.getElementById('voicePicker');
+  sel.innerHTML = '';
+
+  if (!voices.length) {
+    const o = document.createElement('option');
+    o.value = -1; o.textContent = '(voices not loaded yet)';
+    sel.appendChild(o);
+    return;
+  }
+
+  // Preferred: British female voices first
+  const preferredNames = ['Serena','Karen','Moira','Samantha','Daniel','Arthur','Martha','Libby','Hazel','Fiona'];
+  const britishVoices = voices.filter(v => /en.GB/i.test(v.lang));
+  const otherEnglish  = voices.filter(v => /en/i.test(v.lang) && !/en.GB/i.test(v.lang));
+  const rest          = voices.filter(v => !/en/i.test(v.lang));
+
+  const ordered = [...britishVoices, ...otherEnglish, ...rest];
+
+  ordered.forEach(v => {
+    const idx = voices.indexOf(v);
+    const o = document.createElement('option');
+    o.value = idx;
+    o.textContent = v.name + ' (' + v.lang + ')';
+    sel.appendChild(o);
+  });
+
+  // Auto-select best British voice
+  const best = britishVoices.find(v => preferredNames.some(n => v.name.includes(n))) || britishVoices[0];
+  if (best) sel.value = voices.indexOf(best);
+}
+
+if (window.speechSynthesis) {
+  populateVoices();
+  window.speechSynthesis.addEventListener('voiceschanged', populateVoices);
+}
+
+// ══════════════════════════════════════════════
+//  BUILD TOPIC GRID
+// ══════════════════════════════════════════════
+const grid = document.getElementById('topicGrid');
+TOPICS.forEach(t => {
+  const btn = document.createElement('button');
+  btn.className = 'topic-btn';
+  btn.innerHTML = `<span class="topic-icon">${t.icon}</span><span class="topic-name">${t.name}</span><span class="topic-sub">${t.sub}</span>`;
+  btn.addEventListener('click', () => startTopic(t));
+  grid.appendChild(btn);
+});
+
+// ══════════════════════════════════════════════
+//  SCREEN TRANSITIONS
+// ══════════════════════════════════════════════
+document.getElementById('beginBtn').addEventListener('click', () => {
+  unlockAudio();
+  show('topics');
+});
+
+document.getElementById('backBtn').addEventListener('click', () => {
+  stopSpeech();
+  show('topics');
+});
+
+document.getElementById('testVoiceBtn').addEventListener('click', () => {
+  unlockAudio();
+  speak("Hello! How lovely to see you. Let's have a quiz!");
+});
+
+// ══════════════════════════════════════════════
+//  START TOPIC → FETCH QUESTIONS
+// ══════════════════════════════════════════════
+async function startTopic(topic) {
+  currentTopic = topic;
+  document.getElementById('loadingTopicName').textContent =
+    'Getting your ' + topic.name + ' questions ready…';
+  show('loading');
+
+  try {
+    const res = await fetch('/api/quiz?topic=' + topic.id);
+    if (!res.ok) throw new Error('API returned ' + res.status);
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) throw new Error('Empty response');
+    questions = shuffle(data).slice(0, 10);
+  } catch (err) {
+    console.warn('API failed, using fallback:', err);
+    const fb = FALLBACK[topic.id] || FALLBACK.garden;
+    questions = shuffle([...fb]).slice(0, 10);
+  }
+
+  startQuiz();
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ══════════════════════════════════════════════
+//  QUIZ LOGIC
+// ══════════════════════════════════════════════
+function startQuiz() {
+  qIndex = 0; score = 0;
+  show('quiz');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  answered = false;
+  stopSpeech();
+
+  const q = questions[qIndex];
+  const total = questions.length;
+
+  // Progress
+  document.getElementById('progressFill').style.width = ((qIndex / total) * 100) + '%';
+  document.getElementById('qCounter').textContent = (qIndex + 1) + ' / ' + total;
+
+  // Question
+  document.getElementById('qText').textContent = q.q;
+
+  // Options
+  const opts = document.getElementById('optionsEl');
+  opts.innerHTML = '';
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.textContent = opt;
+    btn.addEventListener('click', () => chooseAnswer(i));
+    opts.appendChild(btn);
+  });
+
+  // Feedback & next hidden
+  const fb = document.getElementById('feedbackBox');
+  fb.style.display = 'none';
+  fb.className = 'feedback-box';
+  document.getElementById('nextBtn').style.display = 'none';
+}
+
+function chooseAnswer(chosen) {
+  if (answered) return;
+  answered = true;
+
+  const q = questions[qIndex];
+  const correct = (chosen === q.ans);
+  if (correct) score++;
+
+  // Highlight buttons
+  const btns = document.querySelectorAll('.opt-btn');
+  btns.forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.ans) b.classList.add('correct');
+    else if (i === chosen && !correct) b.classList.add('wrong');
+  });
+
+  // Feedback box
+  const fb = document.getElementById('feedbackBox');
+  fb.className = 'feedback-box ' + (correct ? 'correct-fb' : 'wrong-fb');
+  fb.style.display = 'block';
+
+  document.getElementById('fbReaction').textContent = correct ? '✅' : '❌';
+  document.getElementById('fbMessage').textContent  = correct ? q.praise : q.comfort;
+  document.getElementById('fbFact').textContent     = q.fact;
+
+  // Next button
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.style.display = 'block';
+  const isLast = (qIndex === questions.length - 1);
+  nextBtn.textContent = isLast ? 'See My Score 🌟' : 'Next Question →';
+
+  // Scroll feedback into view
+  setTimeout(() => fb.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+}
+
+document.getElementById('speakQBtn').addEventListener('click', () => {
+  speak(questions[qIndex].q);
+});
+
+document.getElementById('speakFbBtn').addEventListener('click', () => {
+  const q = questions[qIndex];
+  const msg = document.getElementById('fbMessage').textContent;
+  speak(msg + '. ' + q.fact);
+});
+
+document.getElementById('nextBtn').addEventListener('click', () => {
+  qIndex++;
+  if (qIndex >= questions.length) {
+    showResults();
+  } else {
+    renderQuestion();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+});
+
+// ══════════════════════════════════════════════
+//  RESULTS
+// ══════════════════════════════════════════════
+function showResults() {
+  stopSpeech();
+  const total = questions.length;
+  const pct = score / total;
+
+  document.getElementById('scoreNum').textContent   = score;
+  document.getElementById('scoreDenom').textContent = 'out of ' + total;
+
+  let title, msg;
+  if (pct === 1)        { title = 'Perfect score! 🌟'; msg = 'Full marks — what a wonderful result! You really know your ' + currentTopic.name + '.'; }
+  else if (pct >= 0.8)  { title = 'Excellent! 🎉';     msg = 'Very well done — that\'s a marvellous score! You clearly know your ' + currentTopic.name + ' beautifully.'; }
+  else if (pct >= 0.6)  { title = 'Well done! 😊';     msg = 'A lovely result — well done you! Shall we have another go and see if you can beat it?'; }
+  else if (pct >= 0.4)  { title = 'Good effort! 💐';   msg = 'Not a bad score at all — there\'s always something new to learn. Shall we try again?'; }
+  else                  { title = 'Keep trying! 🌸';   msg = 'Never mind — every quiz is a chance to learn something new. How about another round?'; }
+
+  document.getElementById('resultsTitle').textContent = title;
+  document.getElementById('resultsMsg').textContent   = msg;
+  show('results');
+
+  setTimeout(() => speak(title + ' ' + msg), 400);
+}
+
+document.getElementById('playAgainBtn').addEventListener('click', () => {
+  startTopic(currentTopic);
+});
+
+document.getElementById('chooseTopicBtn').addEventListener('click', () => {
+  stopSpeech();
+  show('topics');
+});
+</script>
+</body>
+</html>
