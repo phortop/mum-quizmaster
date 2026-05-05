@@ -81,7 +81,7 @@ The "ans" field is the zero-based index of the correct answer in "opts". Make al
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 4096,
         messages: [{ role: 'user', content: prompt }],
       }),
