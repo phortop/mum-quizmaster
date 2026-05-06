@@ -212,7 +212,24 @@
   .start-btn, .next-btn { padding: 26px 56px !important; font-size: 1.4em !important; }
   .refresh-btn { display:block; margin:18px auto 0; padding:18px 36px; font-size:1.1em; background:#5a7a4a; color:#fff; border:none; border-radius:12px; cursor:pointer; }
   .refresh-btn:hover { background:#4a6a3a; }
+
+  /* Accessibility */
+  body{font-size:22px!important;line-height:1.55!important;}
+  h1{font-size:2.4em!important;}
+  .topic-grid{grid-template-columns:1fr 1fr!important;gap:18px!important;}
+  .begin-btn{width:100%!important;padding:28px 16px!important;font-size:1.2em!important;min-height:120px!important;white-space:normal!important;line-height:1.4!important;display:flex!important;flex-direction:column!important;align-items:center!important;}
+  .topic-icon{font-size:2.4em!important;margin-bottom:10px!important;}
+  .topic-name{font-size:1.25em!important;font-weight:700!important;display:block!important;}
+  .topic-sub{font-size:1em!important;display:block!important;margin-top:6px!important;}
+  .q-text{font-size:1.5em!important;line-height:1.5!important;padding:20px!important;}
+  .options{display:flex!important;flex-direction:column!important;gap:14px!important;}
+  .options button,.option-btn{width:100%!important;padding:24px 20px!important;font-size:1.3em!important;min-height:80px!important;white-space:normal!important;word-wrap:break-word!important;line-height:1.45!important;text-align:center!important;display:block!important;}
+  .next-btn,.back-btn,.result-btns button{padding:24px 32px!important;font-size:1.3em!important;width:100%!important;white-space:normal!important;}
+  .fb-message{font-size:1.4em!important;}
+  .fb-fact{font-size:1.1em!important;line-height:1.6!important;}
+  .refresh-btn{width:100%!important;padding:20px!important;font-size:1.2em!important;}
 </style>
+<script src="https://code.responsivevoice.org/responsivevoice.js?key=FREE"></script>
 </head>
 <body>
 
@@ -409,16 +426,18 @@ function getVoice() {
   }
 
 function speak(text) {
+  if (window.responsiveVoice && responsiveVoice.voiceSupport()) {
+    responsiveVoice.cancel();
+    responsiveVoice.speak(text, "UK English Female", {rate:0.88, pitch:1.0});
+    return;
+  }
   if (!window.speechSynthesis) return;
-  stopSpeech();
+  window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
-    u.rate = 0.88;
-    u.pitch = 1.0;
-  const v = getVoice();
-  if (v) u.voice = v;
-  u.rate = 0.92;
-  u.pitch = 1.0;
-  try { window.speechSynthesis.speak(u); } catch(e) { console.warn('Speech error:', e); }
+  u.rate=0.88; u.pitch=1.0;
+  const brit = window.speechSynthesis.getVoices().filter(v=>/en.GB/i.test(v.lang));
+  if(brit.length) u.voice = brit.find(v=>/serena|martha|libby/i.test(v.name))||brit[0];
+  window.speechSynthesis.speak(u);
 }
 
 function unlockAudio() {
