@@ -228,6 +228,22 @@
   .fb-message{font-size:1.4em!important;}
   .fb-fact{font-size:1.1em!important;line-height:1.6!important;}
   .refresh-btn{width:100%!important;padding:20px!important;font-size:1.2em!important;}
+
+  .voice-row{text-align:center!important;margin:20px 0!important;}
+  .voice-label{font-size:1.3em!important;color:#5a7a5a!important;margin:0!important;}
+  #beginBtn{width:90%!important;padding:36px 24px!important;font-size:2em!important;margin:24px auto!important;display:block!important;border-radius:20px!important;min-height:100px!important;font-weight:700!important;}
+  body{font-size:22px!important;line-height:1.55!important;}
+  h1{font-size:2.4em!important;}
+  .begin-btn{width:100%!important;padding:28px 16px!important;font-size:1.2em!important;min-height:120px!important;white-space:normal!important;line-height:1.4!important;display:flex!important;flex-direction:column!important;align-items:center!important;}
+  .topic-icon{font-size:2.4em!important;margin-bottom:10px!important;}
+  .topic-name{font-size:1.25em!important;font-weight:700!important;display:block!important;}
+  .topic-sub{font-size:1em!important;display:block!important;margin-top:6px!important;}
+  .q-text{font-size:1.5em!important;line-height:1.5!important;padding:20px!important;}
+  .options{display:flex!important;flex-direction:column!important;gap:14px!important;}
+  .options button,.option-btn{width:100%!important;padding:24px 20px!important;font-size:1.3em!important;min-height:80px!important;white-space:normal!important;word-wrap:break-word!important;line-height:1.45!important;text-align:center!important;display:block!important;}
+  .next-btn,.back-btn,.result-btns button{padding:24px 32px!important;font-size:1.3em!important;width:100%!important;white-space:normal!important;}
+  .fb-message{font-size:1.4em!important;}
+  .fb-fact{font-size:1.1em!important;line-height:1.6!important;}
 </style>
 <script src="https://code.responsivevoice.org/responsivevoice.js?key=FREE"></script>
 </head>
@@ -239,11 +255,7 @@
   <h1>Mum's<br>Quizmaster</h1>
   <p>Six topics, fresh questions every time — and I'll read them aloud for you!</p>
 
-  <div class="voice-row">
-    <label>🔊 Voice:</label>
-    <select id="voicePicker"></select>
-    <button id="testVoiceBtn">Test</button>
-  </div>
+  <div class="voice-row"><p class="voice-label">🔊 Reading aloud in UK English</p></div>
 
   <button class="begin-btn" id="beginBtn">Let's Begin!</button>
 </div>
@@ -436,7 +448,7 @@ function speak(text) {
   const u = new SpeechSynthesisUtterance(text);
   u.rate=0.88; u.pitch=1.0;
   const brit = window.speechSynthesis.getVoices().filter(v=>/en.GB/i.test(v.lang));
-  if(brit.length) u.voice = brit.find(v=>/serena|martha|libby/i.test(v.name))||brit[0];
+  if(brit.length) u.voice=brit.find(v=>/serena|martha|libby/i.test(v.name))||brit[0];
   window.speechSynthesis.speak(u);
 }
 
@@ -453,38 +465,7 @@ function unlockAudio() {
 // ══════════════════════════════════════════════
 //  VOICE PICKER
 // ══════════════════════════════════════════════
-function populateVoices() {
-  voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
-  const sel = document.getElementById('voicePicker');
-  sel.innerHTML = '';
-
-  if (!voices.length) {
-    const o = document.createElement('option');
-    o.value = -1; o.textContent = '(voices not loaded yet)';
-    sel.appendChild(o);
-    return;
-  }
-
-  // Preferred: British female voices first
-  const preferredNames = ['Serena','Karen','Moira','Samantha','Daniel','Arthur','Martha','Libby','Hazel','Fiona'];
-  const britishVoices = voices.filter(v => /en.GB/i.test(v.lang));
-  const otherEnglish  = voices.filter(v => /en/i.test(v.lang) && !/en.GB/i.test(v.lang));
-  const rest          = voices.filter(v => !/en/i.test(v.lang));
-
-  const ordered = [...britishVoices, ...otherEnglish, ...rest];
-
-  ordered.forEach(v => {
-    const idx = voices.indexOf(v);
-    const o = document.createElement('option');
-    o.value = idx;
-    o.textContent = v.name + ' (' + v.lang + ')';
-    sel.appendChild(o);
-  });
-
-  // Auto-select best British voice
-  const best = britishVoices.find(v => preferredNames.some(n => v.name.includes(n))) || britishVoices[0];
-  if (best) sel.value = voices.indexOf(best);
-}
+function populateVoices() { /* ResponsiveVoice handles this */ }
 
 if (window.speechSynthesis) {
   populateVoices();
