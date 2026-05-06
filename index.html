@@ -204,6 +204,14 @@
 
   /* ── UTILITY ── */
   .hidden { display: none !important; }
+
+  /* Accessibility */
+  body { font-size: 20px !important; }
+  #welcome h1 { font-size: 2.6em !important; }
+  .option-btn { padding: 22px 28px !important; font-size: 1.25em !important; min-height: 72px !important; }
+  .start-btn, .next-btn { padding: 26px 56px !important; font-size: 1.4em !important; }
+  .refresh-btn { display:block; margin:18px auto 0; padding:18px 36px; font-size:1.1em; background:#5a7a4a; color:#fff; border:none; border-radius:12px; cursor:pointer; }
+  .refresh-btn:hover { background:#4a6a3a; }
 </style>
 </head>
 <body>
@@ -390,16 +398,22 @@ function stopSpeech() {
 }
 
 function getVoice() {
-  const sel = document.getElementById('voicePicker');
-  const idx = parseInt(sel.value, 10);
-  if (!isNaN(idx) && voices[idx]) return voices[idx];
-  return null;
-}
+    const voices = window.speechSynthesis.getVoices();
+    if (!voices.length) return null;
+    const topTier = ['Serena','Martha','Libby','Hazel','Daniel','Arthur','Kate'];
+    const brit = voices.filter(v => /en.GB/i.test(v.lang));
+    const otherEn = voices.filter(v => /en/i.test(v.lang) && !/en.GB/i.test(v.lang));
+    const topBrit = brit.filter(v => topTier.some(t => v.name.includes(t)));
+    const enhBrit = topBrit.filter(v => /enhanced|premium/i.test(v.name));
+    return [...enhBrit, ...topBrit, ...brit, ...otherEn, ...voices][0] || null;
+  }
 
 function speak(text) {
   if (!window.speechSynthesis) return;
   stopSpeech();
   const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.88;
+    u.pitch = 1.0;
   const v = getVoice();
   if (v) u.voice = v;
   u.rate = 0.92;
@@ -650,5 +664,6 @@ document.getElementById('chooseTopicBtn').addEventListener('click', () => {
   show('topics');
 });
 </script>
+<script>(function(){function addRefreshBtn(){var q=document.getElementById('quiz')||document.querySelector('.quiz-container')||document.body;if(document.getElementById('refreshBtn'))return;var b=document.createElement('button');b.className='refresh-btn';b.id='refreshBtn';b.innerHTML='🔄 Refresh Questions';b.onclick=function(){if(typeof loadQuestions==='function')loadQuestions();else if(typeof fetchQuestions==='function')fetchQuestions();else window.location.reload();};q.appendChild(b);}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addRefreshBtn);else addRefreshBtn();})();</script>
 </body>
 </html>
