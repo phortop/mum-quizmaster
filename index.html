@@ -2,700 +2,301 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Mum's Quizmaster</title>
-<script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
 <style>
-  :root {
-    --cream:   #fdf8f0;
-    --warm:    #f5ede0;
-    --gold:    #c8961e;
-    --gold2:   #e8b830;
-    --green:   #4a7c59;
-    --green2:  #3a6347;
-    --text:    #2c2416;
-    --muted:   #7a6a52;
-    --correct: #2e7d32;
-    --wrong:   #c62828;
-    --radius:  16px;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-
-  html, body {
-    height: 100%; background: var(--cream);
-    font-family: Georgia, 'Times New Roman', serif;
-    color: var(--text); overflow-x: hidden;
-  }
-
-  /* ── SCREENS ── */
-  .screen { display: none; min-height: 100vh; padding: 24px 20px 40px; }
-  .screen.active { display: flex; flex-direction: column; align-items: center; }
-
-  /* ── WELCOME ── */
-  #welcome { justify-content: center; gap: 20px; text-align: center; }
-  .owl { font-size: 72px; line-height: 1; }
-  #welcome h1 { font-size: 2.1em; color: var(--green2); line-height: 1.2; }
-  #welcome p  { font-size: 1.15em; color: var(--muted); max-width: 340px; }
-  #welcome .begin-btn {
-    margin-top: 10px;
-    background: var(--green); color: #fff;
-    border: none; border-radius: var(--radius);
-    padding: 22px 48px; font-size: 1.4em;
-    font-family: inherit; cursor: pointer;
-    box-shadow: 0 4px 16px rgba(74,124,89,.35);
-    transition: background .2s;
-  }
-  #welcome .begin-btn:active { background: var(--green2); }
-
-  /* ── VOICE PICKER ── */
-  .voice-row {
-    display: flex; align-items: center; gap: 10px;
-    background: var(--warm); border-radius: 12px;
-    padding: 12px 16px; width: 100%; max-width: 420px;
-    font-size: 1em; color: var(--muted);
-  }
-  .voice-row label { white-space: nowrap; }
-  .voice-row select {
-    flex: 1; border: 1px solid #d9c9a8; border-radius: 8px;
-    padding: 8px 10px; font-family: inherit; font-size: 1em;
-    background: #fff; color: var(--text);
-  }
-  .voice-row button {
-    background: var(--gold); color: #fff; border: none;
-    border-radius: 8px; padding: 8px 14px; font-size: 1.1em;
-    cursor: pointer;
-  }
-  .voice-row button:active { background: #a87818; }
-
-  /* ── TOPIC PICKER ── */
-  #topics { gap: 16px; }
-  #topics h2 { font-size: 1.7em; color: var(--green2); text-align: center; margin-bottom: 4px; }
-  #topics p  { color: var(--muted); text-align: center; margin-bottom: 8px; }
-  .topic-grid {
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 14px; width: 100%; max-width: 480px;
-  }
-  .topic-btn {
-    background: #fff; border: 2px solid #e0d4b8;
-    border-radius: var(--radius); padding: 22px 10px;
-    text-align: center; cursor: pointer;
-    font-family: inherit; transition: all .2s;
-    box-shadow: 0 2px 8px rgba(0,0,0,.07);
-  }
-  .topic-btn:active { background: var(--warm); border-color: var(--gold); transform: scale(.97); }
-  .topic-icon { font-size: 2.2em; display: block; margin-bottom: 8px; }
-  .topic-name { font-size: 1em; font-weight: bold; color: var(--green2); }
-  .topic-sub  { font-size: .82em; color: var(--muted); margin-top: 3px; }
-
-  /* ── LOADING ── */
-  #loading { justify-content: center; gap: 20px; text-align: center; }
-  .spinner {
-    width: 64px; height: 64px;
-    border: 6px solid #e0d4b8;
-    border-top-color: var(--green);
-    border-radius: 50%;
-    animation: spin .9s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  #loading h2 { font-size: 1.5em; color: var(--green2); }
-  #loading p  { color: var(--muted); font-size: 1.05em; max-width: 300px; }
-
-  /* ── QUIZ ── */
-  #quiz { gap: 0; padding-top: 16px; }
-  .quiz-header {
-    width: 100%; max-width: 560px;
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 12px;
-  }
-  .quiz-header .back-btn {
-    background: none; border: 1px solid #d9c9a8;
-    border-radius: 8px; padding: 8px 14px;
-    font-family: inherit; font-size: .95em; cursor: pointer; color: var(--muted);
-  }
-  .progress-bar {
-    flex: 1; height: 10px; background: #e0d4b8;
-    border-radius: 5px; margin: 0 12px; overflow: hidden;
-  }
-  .progress-fill { height: 100%; background: var(--green); border-radius: 5px; transition: width .4s; }
-  .q-counter { font-size: .95em; color: var(--muted); white-space: nowrap; }
-
-  .q-card {
-    background: #fff; border-radius: 20px;
-    padding: 28px 24px; width: 100%; max-width: 560px;
-    box-shadow: 0 4px 20px rgba(0,0,0,.1);
-    margin-bottom: 16px;
-  }
-  .q-text { font-size: 1.25em; line-height: 1.5; color: var(--text); margin-bottom: 6px; }
-  .speak-btn {
-    background: none; border: 1px solid #d9c9a8;
-    border-radius: 8px; padding: 6px 14px;
-    font-size: 1.1em; cursor: pointer; margin-top: 6px;
-    color: var(--muted);
-  }
-  .speak-btn:active { background: var(--warm); }
-
-  .options { width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 12px; }
-  .opt-btn {
-    background: #fff; border: 2px solid #e0d4b8;
-    border-radius: var(--radius); padding: 18px 20px;
-    text-align: left; font-family: inherit; font-size: 1.05em;
-    cursor: pointer; transition: all .15s;
-    box-shadow: 0 2px 8px rgba(0,0,0,.05); color: var(--text);
-  }
-  .opt-btn:active:not([disabled]) { transform: scale(.98); background: var(--warm); }
-  .opt-btn.correct { background: #e8f5e9; border-color: var(--correct); color: var(--correct); }
-  .opt-btn.wrong   { background: #ffebee; border-color: var(--wrong);   color: var(--wrong);   }
-  .opt-btn[disabled] { cursor: default; }
-
-  /* ── FEEDBACK ── */
-  .feedback-box {
-    width: 100%; max-width: 560px;
-    border-radius: 16px; padding: 20px 22px;
-    margin-top: 4px; display: none;
-    animation: fadeIn .3s ease;
-  }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-  .feedback-box.correct-fb { background: #e8f5e9; border: 2px solid #81c784; }
-  .feedback-box.wrong-fb   { background: #ffebee; border: 2px solid #e57373; }
-  .fb-reaction { font-size: 1.6em; margin-bottom: 4px; }
-  .fb-message  { font-size: 1.05em; font-weight: bold; margin-bottom: 8px; }
-  .fb-fact     { font-size: .98em; color: #444; line-height: 1.5; }
-  .fb-speak-btn {
-    background: none; border: 1px solid #aaa;
-    border-radius: 8px; padding: 6px 14px;
-    font-size: 1.05em; cursor: pointer; margin-top: 10px; color: #555;
-  }
-  .next-btn {
-    width: 100%; max-width: 560px;
-    background: var(--green); color: #fff;
-    border: none; border-radius: var(--radius);
-    padding: 20px; font-family: inherit; font-size: 1.2em;
-    cursor: pointer; margin-top: 12px; display: none;
-    box-shadow: 0 4px 14px rgba(74,124,89,.3);
-  }
-  .next-btn:active { background: var(--green2); }
-
-  /* ── RESULTS ── */
-  #results { justify-content: center; gap: 20px; text-align: center; }
-  .score-circle {
-    width: 140px; height: 140px;
-    border-radius: 50%; border: 8px solid var(--gold);
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    background: var(--warm);
-  }
-  .score-num  { font-size: 2.8em; color: var(--gold); font-weight: bold; line-height: 1; }
-  .score-denom{ font-size: 1.1em; color: var(--muted); }
-  #results h2 { font-size: 1.7em; color: var(--green2); }
-  #results p  { font-size: 1.1em; color: var(--muted); max-width: 340px; }
-  .result-btns { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 380px; }
-  .result-btns button {
-    border: none; border-radius: var(--radius);
-    padding: 20px; font-family: inherit; font-size: 1.15em;
-    cursor: pointer;
-  }
-  #playAgainBtn { background: var(--green); color: #fff; box-shadow: 0 4px 14px rgba(74,124,89,.3); }
-  #playAgainBtn:active { background: var(--green2); }
-  #chooseTopicBtn { background: var(--warm); color: var(--green2); border: 2px solid #d9c9a8 !important; }
-  #chooseTopicBtn:active { background: #ede3d0; }
-
-  /* ── UTILITY ── */
-  .hidden { display: none !important; }
-
-  /* Accessibility */
-  body { font-size: 20px !important; }
-  #welcome h1 { font-size: 2.6em !important; }
-  .option-btn { padding: 22px 28px !important; font-size: 1.25em !important; min-height: 72px !important; }
-  .start-btn, .next-btn { padding: 26px 56px !important; font-size: 1.4em !important; }
-  .refresh-btn { display:block; margin:18px auto 0; padding:18px 36px; font-size:1.1em; background:#5a7a4a; color:#fff; border:none; border-radius:12px; cursor:pointer; }
-  .refresh-btn:hover { background:#4a6a3a; }
-
-  /* Accessibility */
-  body{font-size:22px!important;line-height:1.55!important;}
-  h1{font-size:2.4em!important;}
-  .topic-grid{grid-template-columns:1fr 1fr!important;gap:18px!important;}
-  .begin-btn{width:100%!important;padding:28px 16px!important;font-size:1.2em!important;min-height:120px!important;white-space:normal!important;line-height:1.4!important;display:flex!important;flex-direction:column!important;align-items:center!important;}
-  .topic-icon{font-size:2.4em!important;margin-bottom:10px!important;}
-  .topic-name{font-size:1.25em!important;font-weight:700!important;display:block!important;}
-  .topic-sub{font-size:1em!important;display:block!important;margin-top:6px!important;}
-  .q-text{font-size:1.5em!important;line-height:1.5!important;padding:20px!important;}
-  .options{display:flex!important;flex-direction:column!important;gap:14px!important;}
-  .options button,.option-btn{width:100%!important;padding:24px 20px!important;font-size:1.3em!important;min-height:80px!important;white-space:normal!important;word-wrap:break-word!important;line-height:1.45!important;text-align:center!important;display:block!important;}
-  .next-btn,.back-btn,.result-btns button{padding:24px 32px!important;font-size:1.3em!important;width:100%!important;white-space:normal!important;}
-  .fb-message{font-size:1.4em!important;}
-  .fb-fact{font-size:1.1em!important;line-height:1.6!important;}
-  .refresh-btn{width:100%!important;padding:20px!important;font-size:1.2em!important;}
-
-  .voice-row{text-align:center!important;margin:20px 0!important;}
-  .voice-label{font-size:1.3em!important;color:#5a7a5a!important;margin:0!important;}
-  #beginBtn{width:90%!important;padding:36px 24px!important;font-size:2em!important;margin:24px auto!important;display:block!important;border-radius:20px!important;min-height:100px!important;font-weight:700!important;}
-  body{font-size:22px!important;line-height:1.55!important;}
-  h1{font-size:2.4em!important;}
-  .begin-btn{width:100%!important;padding:28px 16px!important;font-size:1.2em!important;min-height:120px!important;white-space:normal!important;line-height:1.4!important;display:flex!important;flex-direction:column!important;align-items:center!important;}
-  .topic-icon{font-size:2.4em!important;margin-bottom:10px!important;}
-  .topic-name{font-size:1.25em!important;font-weight:700!important;display:block!important;}
-  .topic-sub{font-size:1em!important;display:block!important;margin-top:6px!important;}
-  .q-text{font-size:1.5em!important;line-height:1.5!important;padding:20px!important;}
-  .options{display:flex!important;flex-direction:column!important;gap:14px!important;}
-  .options button,.option-btn{width:100%!important;padding:24px 20px!important;font-size:1.3em!important;min-height:80px!important;white-space:normal!important;word-wrap:break-word!important;line-height:1.45!important;text-align:center!important;display:block!important;}
-  .next-btn,.back-btn,.result-btns button{padding:24px 32px!important;font-size:1.3em!important;width:100%!important;white-space:normal!important;}
-  .fb-message{font-size:1.4em!important;}
-  .fb-fact{font-size:1.1em!important;line-height:1.6!important;}
-.voice-row{text-align:center!important;margin:16px 0 24px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:14px!important;}.voice-label{font-size:1.2em!important;color:#5a7a5a!important;}.test-voice-btn{padding:12px 24px!important;font-size:1em!important;background:#b8860b!important;color:#fff!important;border:none!important;border-radius:10px!important;cursor:pointer!important;}#beginBtn{width:90%!important;padding:36px 24px!important;font-size:2em!important;margin:16px auto!important;display:block!important;border-radius:20px!important;min-height:100px!important;font-weight:700!important;}body{font-size:22px!important;line-height:1.55!important;}h1{font-size:2.4em!important;}.begin-btn{width:100%!important;padding:28px 16px!important;font-size:1.2em!important;min-height:120px!important;white-space:normal!important;line-height:1.4!important;display:flex!important;flex-direction:column!important;align-items:center!important;}.topic-icon{font-size:2.4em!important;}.topic-name{font-size:1.25em!important;font-weight:700!important;display:block!important;}.topic-sub{font-size:1em!important;display:block!important;margin-top:6px!important;}.q-text{font-size:1.5em!important;line-height:1.5!important;padding:20px!important;}.options{display:flex!important;flex-direction:column!important;gap:14px!important;}.options button,.option-btn{width:100%!important;padding:24px 20px!important;font-size:1.3em!important;min-height:80px!important;white-space:normal!important;word-wrap:break-word!important;line-height:1.45!important;text-align:center!important;display:block!important;}.next-btn,.back-btn,.result-btns button{padding:24px 32px!important;font-size:1.3em!important;width:100%!important;white-space:normal!important;}.fb-message{font-size:1.4em!important;}.fb-fact{font-size:1.1em!important;line-height:1.6!important;}
-  #flowerBg{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden;}
-  .petal{position:absolute;user-select:none;animation:floatUp linear infinite;opacity:0;}
-  @keyframes floatUp{0%{transform:translateY(108vh) rotate(0deg) scale(0.9);opacity:0;}8%{opacity:0.3;}10%{opacity:0.45;}90%{opacity:0.45;}92%{opacity:0.3;}100%{transform:translateY(-12vh) rotate(40deg) scale(1.1);opacity:0;}}
-  #musicBar{position:fixed;bottom:16px;right:16px;z-index:200;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.85);backdrop-filter:blur(6px);padding:8px 14px;border-radius:30px;box-shadow:0 2px 12px rgba(0,0,0,0.12);}
-  #musicToggle{background:none;border:none;font-size:1.4rem;cursor:pointer;padding:0;line-height:1;}
-  #musicLabel{font-size:0.8rem;color:#5a7a4a;font-style:italic;}
-  body{font-size:22px!important;line-height:1.55!important;}
-  h1{font-size:2.5em!important;}
-  h2{font-size:1.9em!important;}
-  #beginBtn{width:88%!important;padding:38px 28px!important;font-size:2em!important;margin:20px auto!important;display:block!important;border-radius:22px!important;min-height:110px!important;font-weight:700!important;box-shadow:0 6px 24px rgba(0,0,0,0.18)!important;}
-  .voice-row{text-align:center!important;margin:16px 0 20px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:12px!important;}
-  .voice-label{font-size:1.15em!important;color:#5a7a5a!important;}
-  .test-voice-btn{padding:12px 26px!important;font-size:1em!important;background:#b8860b!important;color:#fff!important;border:none!important;border-radius:12px!important;cursor:pointer!important;}
-  .begin-btn{width:100%!important;padding:28px 16px!important;font-size:1.2em!important;min-height:120px!important;white-space:normal!important;line-height:1.4!important;display:flex!important;flex-direction:column!important;align-items:center!important;box-shadow:0 4px 16px rgba(0,0,0,0.1)!important;}
-  .topic-icon{font-size:2.4em!important;margin-bottom:10px!important;}
-  .topic-name{font-size:1.25em!important;font-weight:700!important;display:block!important;}
-  .topic-sub{font-size:0.95em!important;display:block!important;margin-top:6px!important;}
-  .q-text{font-size:1.5em!important;line-height:1.55!important;padding:22px!important;}
-  .options{display:flex!important;flex-direction:column!important;gap:14px!important;}
-  .options button,.option-btn{width:100%!important;padding:24px 22px!important;font-size:1.3em!important;min-height:82px!important;white-space:normal!important;word-wrap:break-word!important;line-height:1.45!important;text-align:center!important;display:block!important;box-shadow:0 3px 10px rgba(0,0,0,0.08)!important;}
-  .next-btn,.back-btn,.result-btns button{padding:26px 32px!important;font-size:1.3em!important;width:100%!important;white-space:normal!important;box-shadow:0 4px 16px rgba(0,0,0,0.14)!important;}
-  .fb-message{font-size:1.4em!important;font-weight:600!important;}
-  .fb-fact{font-size:1.1em!important;line-height:1.65!important;}
-.screen{position:relative;z-index:2;}
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lato:wght@400;700&display=swap');
+  :root{--cream:#fdf6e8;--brown:#5c3d1e;--gold:#c8922a;--dgold:#9a6e1a;--green:#3a5f3a;--lgreen:#e6f0e6;--red:#8b3a3a;--lred:#fceaea;--white:#ffffff;--shadow:rgba(92,61,30,0.12)}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;overflow:hidden;background:var(--cream);font-family:'Lato',Georgia,sans-serif;color:var(--brown);background-image:radial-gradient(ellipse at 15% 5%,rgba(200,146,42,.07) 0%,transparent 50%),radial-gradient(ellipse at 85% 95%,rgba(58,95,58,.05) 0%,transparent 50%)}
+  #shell{display:flex;flex-direction:column;height:100vh;padding:10px 14px 6px;gap:8px}
+  #hdr{flex:0 0 auto;text-align:center;padding:4px 0 2px}
+  #hdr h1{font-family:'Playfair Display',Georgia,serif;font-size:clamp(1.5rem,4vw,2.2rem);font-weight:900;line-height:1;color:var(--brown)}
+  #hdr h1 span{color:var(--gold)}
+  #hdr p{font-size:clamp(0.75rem,1.6vw,0.9rem);color:var(--dgold);font-style:italic;margin-top:2px}
+  .divider{width:80px;height:2px;background:linear-gradient(to right,transparent,var(--gold),transparent);margin:4px auto}
+  #card{flex:1 1 0;background:var(--white);border-radius:14px;border:1px solid rgba(200,146,42,.18);box-shadow:0 3px 18px var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+  .screen{display:none;flex-direction:column;height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px 22px 14px}
+  .screen.active{display:flex}
+  #s-topic h2{font-family:'Playfair Display',serif;font-size:clamp(1.1rem,2.8vw,1.5rem);margin-bottom:4px}
+  #s-topic>p{font-size:clamp(0.8rem,1.7vw,0.95rem);color:#666;line-height:1.5;margin-bottom:12px}
+  .topic-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;margin-bottom:12px}
+  .topic-btn{background:var(--lgreen);border:2px solid transparent;border-radius:10px;padding:12px 14px;cursor:pointer;text-align:left;transition:all 0.18s ease;font-family:'Lato',sans-serif;display:flex;flex-direction:column;justify-content:center}
+  .topic-btn:hover,.topic-btn.sel{border-color:var(--green);background:#cfe3cf;transform:translateY(-1px);box-shadow:0 3px 10px rgba(58,95,58,.18)}
+  .topic-btn .ico{font-size:clamp(1.4rem,3vw,1.9rem);margin-bottom:4px;display:block}
+  .topic-btn .lbl{font-size:clamp(0.85rem,1.8vw,1rem);font-weight:700;color:var(--brown);display:block}
+  .topic-btn .dsc{font-size:clamp(0.7rem,1.4vw,0.82rem);color:#666;display:block;margin-top:2px;line-height:1.3}
+  .start-btn{width:100%;background:var(--green);color:#fff;border:none;border-radius:10px;padding:14px;font-family:'Playfair Display',serif;font-size:clamp(1rem,2.2vw,1.3rem);cursor:pointer;transition:all 0.18s;letter-spacing:.3px}
+  .start-btn:hover:not(:disabled){background:#2d4d2d}
+  .start-btn:disabled{opacity:.35;cursor:not-allowed}
+  .voice-note{text-align:center;font-size:clamp(.65rem,1.3vw,.78rem);color:#bbb;font-style:italic;margin-top:6px}
+  #s-quiz{gap:0;padding:14px 20px 10px}
+  .score-bar{display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid rgba(200,146,42,.2);margin-bottom:10px;flex-shrink:0;flex-wrap:wrap;gap:6px}
+  .score-pill{background:var(--lgreen);border-radius:20px;padding:4px 14px;font-size:clamp(.8rem,1.6vw,.95rem);font-weight:700;color:var(--green)}
+  .q-count{font-size:clamp(.7rem,1.4vw,.85rem);color:#999;font-style:italic}
+  .topic-tag{font-size:clamp(.65rem,1.3vw,.78rem);color:var(--gold);text-transform:uppercase;letter-spacing:.5px}
+  .spk-bar{display:none;align-items:center;gap:8px;padding:7px 12px;background:rgba(200,146,42,.09);border-radius:8px;border-left:3px solid var(--gold);margin-bottom:8px;flex-shrink:0}
+  .spk-bar.on{display:flex}
+  .waves span{display:inline-block;width:3px;height:14px;background:var(--gold);border-radius:2px;margin:0 2px;animation:wv .8s ease-in-out infinite}
+  .waves span:nth-child(2){animation-delay:.1s;height:18px}
+  .waves span:nth-child(3){animation-delay:.2s;height:10px}
+  .waves span:nth-child(4){animation-delay:.3s;height:16px}
+  @keyframes wv{0%,100%{transform:scaleY(1);opacity:.7}50%{transform:scaleY(.4);opacity:1}}
+  .spk-bar p{font-size:clamp(.7rem,1.4vw,.82rem);color:var(--dgold);font-style:italic}
+  #q-text{font-family:'Playfair Display',serif;font-size:clamp(1rem,2.4vw,1.35rem);line-height:1.5;color:var(--brown);margin-bottom:12px;flex-shrink:0}
+  .opts-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px;flex-shrink:0}
+  .opt-btn{background:var(--cream);border:2px solid rgba(200,146,42,.28);border-radius:9px;padding:clamp(10px,1.8vh,14px) 14px;font-family:'Lato',sans-serif;font-size:clamp(.82rem,1.7vw,.98rem);color:var(--brown);cursor:pointer;text-align:left;transition:all .18s;line-height:1.35}
+  .opt-btn:hover:not(:disabled){border-color:var(--gold);background:rgba(200,146,42,.07);transform:translateY(-1px)}
+  .opt-btn.correct{background:#e8f5e8;border-color:var(--green);color:var(--green);font-weight:700}
+  .opt-btn.wrong{background:var(--lred);border-color:var(--red);color:var(--red)}
+  .opt-btn:disabled{cursor:default}
+  #fb-box{display:none;padding:12px 16px;border-radius:10px;margin-bottom:10px;flex-shrink:0;line-height:1.5}
+  #fb-box.correct{background:#e8f5e8;border-left:4px solid var(--green);color:var(--green)}
+  #fb-box.wrong{background:var(--lred);border-left:4px solid var(--red);color:var(--red)}
+  .fb-emoji{font-size:clamp(1.2rem,2.5vw,1.6rem);display:block;margin-bottom:5px}
+  .fb-main{font-family:'Playfair Display',serif;font-size:clamp(.92rem,2vw,1.1rem);font-weight:700}
+  .fb-fact{font-size:clamp(.78rem,1.6vw,.9rem);margin-top:4px;color:#333;line-height:1.5}
+  .btn-row{display:flex;gap:10px;flex-shrink:0;margin-top:auto;padding-top:6px}
+  .btn-speak{background:rgba(200,146,42,.1);border:2px solid var(--gold);color:var(--dgold);border-radius:9px;padding:10px 14px;font-size:clamp(1rem,2vw,1.25rem);cursor:pointer;transition:all .18s;flex-shrink:0}
+  .btn-speak:hover{background:rgba(200,146,42,.22)}
+  .btn-next{flex:1;display:none;background:var(--brown);color:#fff;border:none;border-radius:9px;padding:10px;font-family:'Playfair Display',serif;font-size:clamp(.9rem,1.9vw,1.1rem);cursor:pointer;transition:all .18s}
+  .btn-next:hover{background:#3d2810}
+  #s-end{align-items:center;justify-content:center;text-align:center;gap:10px}
+  #s-end .trophy{font-size:clamp(2.5rem,7vw,4rem)}
+  #s-end h2{font-family:'Playfair Display',serif;font-size:clamp(1.4rem,3.5vw,2rem)}
+  .final-score{font-size:clamp(2rem,5vw,3rem);font-weight:900;color:var(--gold);font-family:'Playfair Display',serif}
+  .score-lbl{font-size:clamp(.8rem,1.7vw,1rem);color:#888}
+  .end-msg{font-size:clamp(.85rem,1.8vw,1.05rem);color:#555;font-style:italic;line-height:1.6;max-width:480px}
+  .btn-restart{background:var(--green);color:#fff;border:none;border-radius:10px;padding:14px 36px;font-family:'Playfair Display',serif;font-size:clamp(.95rem,2vw,1.2rem);cursor:pointer;transition:all .18s}
+  .btn-restart:hover{background:#2d4d2d}
 </style>
 </head>
 <body>
-<div id="flowerBg" aria-hidden="true"></div>
-<div id="musicBar"><button id="musicToggle" aria-label="Toggle music">🎵</button><span id="musicLabel">Greensleeves</span></div>
-
-<!-- ══════════════ WELCOME ══════════════ -->
-<div id="welcome" class="screen active">
-  <div class="owl">🦉</div>
-  <h1>Mum's<br>Quizmaster</h1>
-  <p>Six topics, fresh questions every time — and I'll read them aloud for you!</p>
-
-  <div class="voice-row"><span class="voice-label">🔊 UK English voice</span> <button id="testVoiceBtn" class="test-voice-btn">Test</button></div>
-
-  <button class="begin-btn" id="beginBtn">Let's Begin!</button>
-</div>
-
-<!-- ══════════════ TOPICS ══════════════ -->
-<div id="topics" class="screen">
-  <h2>Choose a Topic</h2>
-  <p>Tap a card to start a new quiz</p>
-  <div class="topic-grid" id="topicGrid"></div>
-</div>
-
-<!-- ══════════════ LOADING ══════════════ -->
-<div id="loading" class="screen">
-  <div class="spinner"></div>
-  <h2>Thinking up your questions…</h2>
-  <p id="loadingTopicName">Just a moment, getting things ready!</p>
-</div>
-
-<!-- ══════════════ QUIZ ══════════════ -->
-<div id="quiz" class="screen">
-  <div class="quiz-header">
-    <button class="back-btn" id="backBtn">← Topics</button>
-    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-    <span class="q-counter" id="qCounter">1 / 10</span>
+<div id="shell">
+  <div id="hdr">
+    <h1>The <span>Quizmaster</span></h1>
+    <div class="divider"></div>
+    <p>Questions read aloud &mdash; just listen and tap your answer</p>
   </div>
-
-  <div class="q-card">
-    <div class="q-text" id="qText"></div>
-    <button class="speak-btn" id="speakQBtn">🔊 Read question</button>
-  </div>
-
-  <div class="options" id="optionsEl"></div>
-
-  <div class="feedback-box" id="feedbackBox">
-    <div class="fb-reaction" id="fbReaction"></div>
-    <div class="fb-message"  id="fbMessage"></div>
-    <div class="fb-fact"     id="fbFact"></div>
-    <button class="fb-speak-btn" id="speakFbBtn">🔊 Read feedback</button>
-  </div>
-
-  <button class="next-btn" id="nextBtn">Next Question →</button>
-</div>
-
-<!-- ══════════════ RESULTS ══════════════ -->
-<div id="results" class="screen">
-  <div class="score-circle">
-    <span class="score-num"  id="scoreNum">0</span>
-    <span class="score-denom" id="scoreDenom">out of 10</span>
-  </div>
-  <h2 id="resultsTitle">Well done!</h2>
-  <p  id="resultsMsg"></p>
-  <div class="result-btns">
-    <button id="playAgainBtn">Play Again 🎉</button>
-    <button id="chooseTopicBtn">Choose Another Topic</button>
+  <div id="card">
+    <div id="s-topic" class="screen active">
+      <h2>Choose your topic</h2>
+      <p>Pick a subject, then press <em>Start the Quiz</em>.</p>
+      <div class="topic-grid">
+        <button class="topic-btn" data-t="garden"    onclick="pick(this)"><span class="ico">&#127801;</span><span class="lbl">Gardening</span><span class="dsc">Flowers, plants &amp; the seasons</span></button>
+        <button class="topic-btn" data-t="history"   onclick="pick(this)"><span class="ico">&#9876;</span><span class="lbl">English History</span><span class="dsc">Kings, queens &amp; great events</span></button>
+        <button class="topic-btn" data-t="houses"    onclick="pick(this)"><span class="ico">&#127984;</span><span class="lbl">Historic Houses</span><span class="dsc">Stately homes &amp; castles</span></button>
+        <button class="topic-btn" data-t="radio4"    onclick="pick(this)"><span class="ico">&#128251;</span><span class="lbl">BBC Radio 4</span><span class="dsc">Programmes &amp; The Archers</span></button>
+        <button class="topic-btn" data-t="nature"    onclick="pick(this)"><span class="ico">&#127853;</span><span class="lbl">Nature &amp; Wildlife</span><span class="dsc">Birds, seasons &amp; countryside</span></button>
+        <button class="topic-btn" data-t="northeast" onclick="pick(this)"><span class="ico">&#9962;</span><span class="lbl">The North East</span><span class="dsc">Newcastle, Durham &amp; Northumberland</span></button>
+      </div>
+      <button class="start-btn" id="start-btn" onclick="startQuiz()" disabled>Start the Quiz</button>
+      <p class="voice-note">Please make sure your sound is turned on for spoken questions</p>
+    </div>
+    <div id="s-quiz" class="screen">
+      <div class="score-bar">
+        <div class="score-pill" id="score-el">Score: 0</div>
+        <div class="q-count" id="qcount-el">Question 1 of 10</div>
+        <div class="topic-tag" id="ttag-el"></div>
+      </div>
+      <div class="spk-bar" id="spk-bar">
+        <div class="waves"><span></span><span></span><span></span><span></span></div>
+        <p>Reading question aloud&hellip;</p>
+      </div>
+      <div id="q-text"></div>
+      <div class="opts-grid" id="opts-grid"></div>
+      <div id="fb-box"></div>
+      <div class="btn-row">
+        <button class="btn-speak" onclick="speakQ()" title="Hear again">&#128266;</button>
+        <button class="btn-next" id="next-btn" onclick="nextQ()">Next Question</button>
+      </div>
+    </div>
+    <div id="s-end" class="screen">
+      <div class="trophy" id="trophy-el">&#127942;</div>
+      <h2 id="end-h"></h2>
+      <div class="final-score" id="fscore-el">0/10</div>
+      <div class="score-lbl">correct answers</div>
+      <p class="end-msg" id="end-msg-el"></p>
+      <button class="btn-restart" onclick="reset()">&#128260; Play Again</button>
+    </div>
   </div>
 </div>
-
 <script>
-// ══════════════════════════════════════════════
-//  CONFIG
-// ══════════════════════════════════════════════
-const TOPICS = [
-  { id: 'garden',   icon: '🌹', name: 'Gardening',        sub: 'Flowers, tasks & gardens' },
-  { id: 'history',  icon: '👑', name: 'English History',   sub: 'Kings, queens & great events' },
-  { id: 'houses',   icon: '🏰', name: 'Historic Houses',   sub: 'Castles & country houses' },
-  { id: 'radio4',   icon: '📻', name: 'BBC Radio 4',       sub: 'The Archers & favourites' },
-  { id: 'nature',   icon: '🦔', name: 'Nature & Wildlife', sub: 'Birds, flowers & seasons' },
-  { id: 'northeast',icon: '⛪', name: 'The North East',    sub: 'Newcastle, Durham & more' },
-];
-
-// Fallback questions (used if API call fails)
-const FALLBACK = {
-  garden: [
-    {q:"Which rose is often called the 'Queen of the Garden'?",opts:["Rosa canina","Rosa 'Peace'","Rosa moyesii","Rosa 'Iceberg'"],ans:1,praise:"Quite right — beautifully remembered!",comfort:"Never mind — it's the 'Peace' rose, introduced after World War II.",fact:"The 'Peace' rose was introduced in 1945 and given its hopeful name to mark the end of World War II. It was the first rose to be named by a committee, reflecting the international effort to celebrate peace."},
-    {q:"What does 'deadheading' mean in gardening?",opts:["Planting in autumn","Removing spent blooms","Pruning in winter","Staking tall plants"],ans:1,praise:"Spot on — well done you!",comfort:"Not quite — deadheading means removing old flower heads to encourage more blooms.",fact:"Deadheading encourages plants to put their energy into producing more flowers rather than setting seed. It's one of the most rewarding garden tasks and can extend the flowering season by weeks."},
-    {q:"Which famous garden designer created the 'natural landscape' style?",opts:["Gertrude Jekyll","Capability Brown","Alan Titchmarsh","Vita Sackville-West"],ans:1,praise:"Excellent — Capability Brown indeed!",comfort:"The answer is Capability Brown, who shaped hundreds of English estates.",fact:"Lancelot 'Capability' Brown earned his nickname from his habit of saying estates had 'great capability' for improvement. He designed over 170 parks and gardens across England in the 18th century."},
-    {q:"At which famous garden show is the Best in Show garden awarded each year?",opts:["Hampton Court","Chatsworth","Chelsea","Tatton Park"],ans:2,praise:"Absolutely right — Chelsea it is!",comfort:"It's the Chelsea Flower Show, held in May in the grounds of the Royal Hospital Chelsea.",fact:"The Chelsea Flower Show has been held since 1913 and is one of the most prestigious horticultural events in the world. The Queen was a regular visitor for many decades."},
-    {q:"Which vegetable is traditionally the first to be sown in a kitchen garden in spring?",opts:["Runner beans","Broad beans","Tomatoes","Courgettes"],ans:1,praise:"Quite right — broad beans are the brave early ones!",comfort:"Broad beans are the answer — they can be sown in autumn or early spring.",fact:"Broad beans are one of the hardiest vegetables and can even be sown in autumn to overwinter. They were one of the few beans known in Europe before the Americas were discovered."},
-    {q:"What is the Chelsea Pensioners' garden famous for?",opts:["Its herb maze","Its rose arbour","Its kitchen garden","Its tulip display"],ans:1,praise:"Lovely — well remembered!",comfort:"It's the rose arbour in the grounds of the Royal Hospital Chelsea.",fact:"The Royal Hospital Chelsea, home of the Chelsea Pensioners, has beautiful grounds that form the setting for the world-famous Chelsea Flower Show each May."},
-    {q:"Which climbing plant is famous for its fragrant purple flowers in early summer?",opts:["Clematis","Honeysuckle","Wisteria","Virginia Creeper"],ans:2,praise:"Perfectly right — wisteria!",comfort:"Wisteria is the answer — those beautiful cascades of purple.",fact:"Wisteria can live for hundreds of years and the oldest known specimen in Britain, at Maidstone in Kent, is thought to be over 200 years old. Its flowers are wonderfully fragrant."},
-    {q:"What does RHS stand for?",opts:["Royal Horticulture Society","Royal Horticultural Society","Royal House & Shrub","Regional Horticultural Service"],ans:1,praise:"Quite right — well done!",comfort:"RHS stands for the Royal Horticultural Society, founded in 1804.",fact:"The Royal Horticultural Society was founded in 1804 and has over 700,000 members. It runs famous gardens at Wisley, Rosemoor, Hyde Hall, and Harlow Carr."},
-    {q:"Which flower is the symbol of Remembrance Sunday?",opts:["Lily","Poppy","Bluebell","Cornflower"],ans:1,praise:"Of course — the poppy!",comfort:"The poppy is our symbol of remembrance, inspired by the fields of Flanders.",fact:"The red poppy became the symbol of remembrance after World War I, inspired by the poem 'In Flanders Fields' by Lieutenant Colonel John McCrae, who wrote of poppies growing over the graves of fallen soldiers."},
-    {q:"What is 'hardening off' in gardening?",opts:["Drying out compost","Gradually acclimatising seedlings to outdoor conditions","Adding grit to soil","Pruning woody stems"],ans:1,praise:"Exactly right — very good!",comfort:"Hardening off means gradually getting seedlings used to outdoor conditions before planting out.",fact:"Hardening off is important because seedlings grown indoors are used to warm, sheltered conditions. Moving them outside suddenly can shock them — so gardeners put them outside for a little longer each day over a week or two."},
-  ],
-  history: [
-    {q:"In which year did the Battle of Hastings take place?",opts:["1042","1066","1087","1100"],ans:1,praise:"Quite right — 1066, a date everyone knows!",comfort:"1066 is the year — one of the most famous dates in English history.",fact:"The Battle of Hastings on 14th October 1066 changed England forever. William the Conqueror defeated King Harold, who famously died in the battle — though whether it was an arrow in the eye remains debated by historians."},
-    {q:"Which queen ruled England for 63 years in the 19th century?",opts:["Mary I","Anne","Victoria","Elizabeth I"],ans:2,praise:"Queen Victoria — quite right!",comfort:"Queen Victoria reigned from 1837 to 1901 — a remarkable 63 years.",fact:"Queen Victoria came to the throne aged just 18 and reigned for 63 years, the longest of any British monarch until Queen Elizabeth II surpassed her record. She is often associated with the Great Exhibition of 1851 and the expansion of the British Empire."},
-    {q:"What was the name of the nursing heroine of the Crimean War?",opts:["Edith Cavell","Grace Darling","Harriet Martineau","Florence Nightingale"],ans:3,praise:"Florence Nightingale — well remembered!",comfort:"Florence Nightingale was the great nursing reformer of the Crimean War.",fact:"Florence Nightingale became known as 'The Lady with the Lamp' for her nightly rounds of the wards at Scutari. She revolutionised nursing and her work reduced death rates dramatically. She was born in Florence, Italy, and named after the city."},
-    {q:"The Magna Carta was signed in which year?",opts:["1066","1215","1348","1415"],ans:1,praise:"1215 — perfectly correct!",comfort:"The Magna Carta was sealed at Runnymede in 1215.",fact:"The Magna Carta, or 'Great Charter', was sealed by King John at Runnymede in 1215. It established for the first time that the king was subject to the rule of law — a principle that underpins democracy to this day."},
-    {q:"Who was the first female Prime Minister of Great Britain?",opts:["Barbara Castle","Shirley Williams","Margaret Thatcher","Theresa May"],ans:2,praise:"Margaret Thatcher — well done!",comfort:"Margaret Thatcher became Prime Minister in 1979.",fact:"Margaret Thatcher served as Prime Minister from 1979 to 1990, making her the longest-serving PM of the 20th century. Known as 'The Iron Lady', she was the daughter of a Grantham grocer and won a chemistry degree from Oxford."},
-    {q:"In which year did the Great Fire of London occur?",opts:["1605","1666","1707","1745"],ans:1,praise:"1666 — quite right!",comfort:"The Great Fire of London happened in 1666, starting in Pudding Lane.",fact:"The Great Fire of London started in a bakery in Pudding Lane on 2nd September 1666 and burned for three days. It destroyed over 13,000 houses but, remarkably, very few people died. It did lead to the rebuilding of St Paul's Cathedral by Sir Christopher Wren."},
-    {q:"Which English explorer was the first to circumnavigate the globe?",opts:["Walter Raleigh","Francis Drake","John Cabot","Martin Frobisher"],ans:1,praise:"Francis Drake — well done!",comfort:"Francis Drake completed the first English circumnavigation of the globe.",fact:"Sir Francis Drake completed his circumnavigation of the globe between 1577 and 1580, returning to Plymouth Harbour. Queen Elizabeth I knighted him on the deck of his ship, the Golden Hind."},
-    {q:"What were the women who campaigned for the right to vote called?",opts:["Suffragists","Suffragettes","Feminettes","The Women's League"],ans:1,praise:"The suffragettes — quite right!",comfort:"They were called the suffragettes — the more militant campaigners for women's votes.",fact:"The suffragettes, led by Emmeline Pankhurst and her daughters, campaigned vigorously for women's right to vote. British women over 30 won the vote in 1918, and full equal suffrage was granted in 1928."},
-    {q:"At which battle did Nelson defeat the French and Spanish fleets in 1805?",opts:["Battle of the Nile","Battle of Copenhagen","Battle of Trafalgar","Battle of Jutland"],ans:2,praise:"Trafalgar — well remembered!",comfort:"The Battle of Trafalgar in 1805 — Nelson's greatest victory.",fact:"The Battle of Trafalgar on 21st October 1805 secured British naval supremacy for a century. Nelson was fatally wounded during the battle, dying with the words 'Thank God, I have done my duty.' His flagship HMS Victory can still be visited at Portsmouth."},
-    {q:"Which English king signed the Magna Carta?",opts:["Henry II","Richard I","King John","Henry III"],ans:2,praise:"King John — exactly right!",comfort:"King John was reluctantly persuaded to sign the Magna Carta at Runnymede.",fact:"King John is often portrayed as a villain, but the Magna Carta he sealed in 1215 laid the foundations for constitutional government. He only agreed under pressure from his rebellious barons and reportedly wept with rage afterwards."},
-  ],
-  houses: [
-    {q:"Which great house in Northumberland is home to the Percy family, Dukes of Northumberland?",opts:["Raby Castle","Wallington Hall","Alnwick Castle","Bamburgh Castle"],ans:2,praise:"Alnwick Castle — perfectly right!",comfort:"Alnwick Castle is the ancestral home of the Percys, Dukes of Northumberland.",fact:"Alnwick Castle has been the seat of the Percy family since 1309 and is one of the largest inhabited castles in England. It has also served as a filming location for the Harry Potter films, where it doubled as Hogwarts."},
-    {q:"Which magnificent Derbyshire house is sometimes called 'the Palace of the Peak'?",opts:["Haddon Hall","Hardwick Hall","Chatsworth House","Kedleston Hall"],ans:2,praise:"Chatsworth — beautifully remembered!",comfort:"Chatsworth House in Derbyshire is often called the Palace of the Peak.",fact:"Chatsworth House has been home to the Cavendish family, Dukes of Devonshire, for over 400 years. Its gardens, designed partly by Capability Brown, include a famous cascade and a spectacular fountain."},
-    {q:"Blenheim Palace was built to honour which famous English military commander?",opts:["Duke of Wellington","Lord Nelson","Duke of Marlborough","Sir Francis Drake"],ans:2,praise:"The Duke of Marlborough — quite right!",comfort:"Blenheim Palace was built to honour John Churchill, the first Duke of Marlborough.",fact:"Blenheim Palace in Oxfordshire was a gift from a grateful nation to the Duke of Marlborough after his victory at the Battle of Blenheim in 1704. It is also the birthplace of Sir Winston Churchill, who was born there in 1874."},
-    {q:"Hardwick Hall in Derbyshire is famously associated with which powerful Elizabethan lady?",opts:["Lady Jane Grey","Bess of Hardwick","Mary Queen of Scots","Lady Arbella Stuart"],ans:1,praise:"Bess of Hardwick — wonderful!",comfort:"Hardwick Hall was built by Bess of Hardwick, one of the most remarkable women of the Elizabethan age.",fact:"Bess of Hardwick was four times married and became one of the wealthiest people in England. She built Hardwick Hall in the 1590s and it is famous for its enormous windows — hence the saying 'Hardwick Hall, more glass than wall'."},
-    {q:"Which National Trust property in Northumberland was home to the Trevelyan family?",opts:["Cragside","Seaton Delaval Hall","Wallington Hall","Belsay Hall"],ans:2,praise:"Wallington Hall — very good!",comfort:"Wallington Hall near Cambo was the home of the Trevelyan family.",fact:"Wallington Hall was given to the National Trust in 1941 by Sir Charles Trevelyan. Its central hall contains Pre-Raphaelite paintings illustrating the history of Northumbria, and the walled garden is particularly beautiful."},
-    {q:"Which Northumberland house was the first in the world to be lit by hydroelectric power?",opts:["Alnwick Castle","Bamburgh Castle","Cragside","Lindisfarne Castle"],ans:2,praise:"Cragside — perfectly right!",comfort:"Cragside near Rothbury was the first house in the world lit by hydroelectric power.",fact:"Cragside was built by the inventor and industrialist Lord Armstrong in the 1870s. He harnessed the power of local streams to generate electricity, making it the first house in the world to be lit by hydroelectricity. The grounds contain miles of walks through rhododendron-lined paths."},
-    {q:"Castle Howard in Yorkshire is famous for featuring in which beloved TV series?",opts:["Downton Abbey","Poldark","Brideshead Revisited","Upstairs Downstairs"],ans:2,praise:"Brideshead Revisited — well remembered!",comfort:"Castle Howard featured as Brideshead in the 1981 TV series Brideshead Revisited.",fact:"Castle Howard was used as the setting for Brideshead Revisited, both the 1981 television adaptation and the 2008 film. The house has been home to the Howard family since it was built in the early 18th century, and its dome is one of the finest in England."},
-    {q:"Which ancient Northumberland castle sits on a rocky outcrop overlooking the North Sea?",opts:["Alnwick Castle","Lindisfarne Castle","Bamburgh Castle","Dunstanburgh Castle"],ans:2,praise:"Bamburgh Castle — quite right!",comfort:"Bamburgh Castle stands magnificently on a rocky outcrop above the Northumberland coast.",fact:"Bamburgh Castle has a history stretching back over 1,400 years. It was the royal seat of the ancient Kings of Northumbria and is one of the most dramatic and romantic castles in England, visible for miles along the coast."},
-    {q:"What name is given to the Roman wall that stretches across northern England?",opts:["Offa's Dyke","The Northern Wall","Hadrian's Wall","The Roman Frontier"],ans:2,praise:"Hadrian's Wall — excellent!",comfort:"It's Hadrian's Wall, built by the Roman Emperor Hadrian in around AD 122.",fact:"Hadrian's Wall stretches 73 miles from Wallsend on the River Tyne to the Solway Firth. It was built on the orders of Emperor Hadrian around AD 122 to mark the northern frontier of the Roman Empire and is a UNESCO World Heritage Site."},
-    {q:"Which historic cathedral city in County Durham sits on a rocky peninsula in a loop of the River Wear?",opts:["York","Hexham","Ripon","Durham"],ans:3,praise:"Durham — beautifully right!",comfort:"Durham Cathedral and Castle sit on a dramatic rocky peninsula in a loop of the River Wear.",fact:"Durham Cathedral is considered one of the finest examples of Norman architecture in Europe. It houses the tombs of Saint Cuthbert and the Venerable Bede, and together with Durham Castle forms a UNESCO World Heritage Site."},
-  ],
-  radio4: [
-    {q:"In The Archers, what is the name of the fictional village where the programme is set?",opts:["Borsetshire","Ambridge","Felpersham","Hollerton"],ans:1,praise:"Ambridge — quite right!",comfort:"The Archers is set in the village of Ambridge in the fictional county of Borsetshire.",fact:"The Archers has been broadcast since 1951 and is the world's longest-running radio soap opera. The village of Ambridge and its surrounding farms have become beloved to millions of listeners over more than seven decades."},
-    {q:"Which Radio 4 programme asks guests to choose eight records to take to a desert island?",opts:["In Our Time","Just a Minute","Desert Island Discs","Saturday Live"],ans:2,praise:"Desert Island Discs — perfectly right!",comfort:"Desert Island Discs asks guests to choose eight records, a book, and a luxury.",fact:"Desert Island Discs was created by Roy Plomley and first broadcast in 1942. Guests choose eight recordings, one book (in addition to the Bible and Shakespeare), and one luxury item. It is one of the most popular and longest-running programmes on British radio."},
-    {q:"Which Radio 4 panel game requires contestants to speak for one minute without hesitation, repetition or deviation?",opts:["I'm Sorry I Haven't a Clue","Brain of Britain","Just a Minute","The Unbelievable Truth"],ans:2,praise:"Just a Minute — well done!",comfort:"It's Just a Minute, where players must speak without hesitation, repetition or deviation.",fact:"Just a Minute was devised by Ian Messiter and has been broadcast since 1967. The much-loved Nicholas Parsons chaired the programme for over 50 years. Players must speak for a full minute on a given subject without breaking any of the three rules."},
-    {q:"Which Radio 4 programme, presented by Melvyn Bragg, explores the history of ideas?",opts:["Start the Week","Front Row","Saturday Live","In Our Time"],ans:3,praise:"In Our Time — beautifully right!",comfort:"In Our Time with Melvyn Bragg explores the history of ideas each Thursday morning.",fact:"In Our Time with Melvyn Bragg has been broadcast since 1998 and covers an astonishing range of subjects from philosophy and science to art and religion. The archive of over 900 episodes is freely available on the BBC website."},
-    {q:"What is the name of the farming family at the heart of The Archers?",opts:["The Grundys","The Aldridges","The Archers","The Cartertons"],ans:2,praise:"The Archers — of course!",comfort:"The Archer family — Phil, David, and their relations — are at the heart of the programme.",fact:"The Archer family farm Brookfield Farm in Ambridge. The programme was originally conceived to educate farmers about new agricultural methods after the war, but quickly became beloved as a family drama. David and Ruth Archer now run the farm."},
-    {q:"Which Radio 4 programme is famous for broadcasting the Shipping Forecast?",opts:["Today","PM","Sailing By","The Midnight Forecast"],ans:2,praise:"Sailing By — quite right!",comfort:"The Shipping Forecast is preceded by the tune Sailing By on Radio 4.",fact:"The Shipping Forecast has been broadcast since 1867 in various forms and is one of Radio 4's most distinctive features. The sea areas — Dogger, Fisher, German Bight and the rest — have a poetic quality that many listeners find wonderfully soothing at bedtime."},
-    {q:"Which long-running Radio 4 programme focuses on women's lives and current affairs?",opts:["Saturday Live","Woman's Hour","Female Focus","The Women's Programme"],ans:1,praise:"Woman's Hour — well remembered!",comfort:"Woman's Hour has been a beloved part of Radio 4 since 1946.",fact:"Woman's Hour first broadcast in 1946 and has been an important part of Radio 4 ever since. It has tackled issues from domestic life and health to politics and the arts, and is credited with helping to change attitudes on many important subjects."},
-    {q:"In The Archers, which family is known for their rough-and-ready smallholding and money troubles?",opts:["The Aldridges","The Archers","The Grundys","The Cartertons"],ans:2,praise:"The Grundys — exactly right!",comfort:"The Grundys are the loveable, struggling farming family of Ambridge.",fact:"Eddie and Joe Grundy and their family have been an endearing part of The Archers for decades. Often in financial difficulty, they are warm-hearted characters who add humour and humanity to the village of Ambridge."},
-    {q:"Gardeners' Question Time has been a Radio 4 favourite for many decades. What format does it follow?",opts:["Celebrity gardeners compete","A panel of experts answers audience questions","Listeners vote on garden designs","Famous gardens are visited"],ans:1,praise:"Quite right — a panel of experts answers questions from the audience!",comfort:"Gardeners' Question Time features a panel of horticultural experts answering questions from a live audience.",fact:"Gardeners' Question Time was first broadcast in 1947 and is one of Radio 4's longest-running programmes. It travels to gardens and venues around the country, and the expert panel answers listeners' horticultural questions with warmth and practical wisdom."},
-    {q:"Which Radio 4 programme, broadcast on Saturday mornings, features listeners sharing stories and music?",opts:["Desert Island Discs","Saturday Live","Home Truths","Weekend Woman's Hour"],ans:1,praise:"Saturday Live — well done!",comfort:"Saturday Live on Radio 4 is a warm magazine programme for Saturday mornings.",fact:"Saturday Live is a cheerful mix of conversation, stories, and music broadcast on Saturday mornings. It features a mix of celebrity guests and ordinary people sharing their stories, and is presented with great warmth and good humour."},
-  ],
-  nature: [
-    {q:"Which small brown bird with a bright orange-red breast is the unofficial national bird of England?",opts:["Wren","Sparrow","Robin","Chaffinch"],ans:2,praise:"The robin — perfectly right!",comfort:"The robin with its cheerful red breast is the beloved bird most associated with England.",fact:"The robin became Britain's unofficial national bird through a public vote in 1960, and was confirmed in a more recent poll in 2015. Robins are famously bold and will follow gardeners closely, hoping to catch worms turned up by the spade."},
-    {q:"Which spring woodland flower carpets the ground in bluish-purple and has a delicious scent?",opts:["Wood anemone","Primrose","Bluebell","Wild garlic"],ans:2,praise:"The bluebell — beautifully right!",comfort:"The bluebell, with its nodding blue flowers and sweet scent, is one of our loveliest spring flowers.",fact:"England is home to about half the world's population of bluebells. The ancient English bluebell has drooping, strongly scented flowers and is protected by law. Bluebell woods in April and May are one of the great natural spectacles of the British countryside."},
-    {q:"Which familiar garden visitor is known for its black and white striped face and comes out mainly at night?",opts:["Otter","Fox","Badger","Hedgehog"],ans:2,praise:"The badger — quite right!",comfort:"The badger, with its distinctive striped face, is one of our best-loved nocturnal creatures.",fact:"Badgers live in large underground setts that may be used by generations of families for hundreds of years. They are our largest land predator and eat earthworms, beetles, and fruit. Badgers are very loyal to their family groups and maintain elaborate social structures."},
-    {q:"What is the name of the cheerful yellow-and-black garden bird with a tinkling song?",opts:["Greenfinch","Goldfinch","Yellowhammer","Siskin"],ans:1,praise:"The goldfinch — well done!",comfort:"The goldfinch, with its red face and golden wing bar, is one of our most beautiful garden birds.",fact:"The goldfinch has a lovely, liquid, tinkling call. Groups of goldfinches are called a 'charm' — a perfect description for these delightful little birds. They are particularly fond of thistle and teasel seeds and have become more common in gardens in recent decades."},
-    {q:"Which small prickly mammal hibernates over winter and is sadly declining in Britain?",opts:["Dormouse","Vole","Mole","Hedgehog"],ans:3,praise:"The hedgehog — quite right!",comfort:"The hedgehog, with its coat of spines, is one of our most charming garden visitors.",fact:"Hedgehogs have been in Britain since before the last Ice Age. Sadly their numbers have declined sharply in recent decades, partly due to loss of habitat. Leaving a small gap in garden fences and providing a log pile can help hedgehogs find food and shelter."},
-    {q:"Which tree, common in English hedgerows, produces a red berry beloved by birds in autumn?",opts:["Elder","Blackthorn","Holly","Hawthorn"],ans:3,praise:"Hawthorn — well remembered!",comfort:"The hawthorn produces clusters of bright red berries called haws in autumn.",fact:"The hawthorn is one of our most important native trees, providing food and shelter for dozens of species of birds and insects. Its creamy white 'may blossom' in spring is one of the loveliest sights of the countryside and gave the month of May its traditional association with joy and renewal."},
-    {q:"Which orange-and-black butterfly, seen in gardens from midsummer, migrates from southern Europe each year?",opts:["Red Admiral","Peacock","Comma","Painted Lady"],ans:3,praise:"The painted lady — perfectly right!",comfort:"The painted lady butterfly makes an extraordinary annual migration from North Africa and southern Europe.",fact:"The painted lady undertakes one of the most remarkable migrations in the natural world, travelling up to 9,000 miles from sub-Saharan Africa to the Arctic and back. Huge numbers arrive in Britain in some summers, filling gardens with their orange wings."},
-    {q:"What is the name of the bright blue flash of colour you might glimpse along a river or stream?",opts:["Blue tit","Jay","Kingfisher","Heron"],ans:2,praise:"The kingfisher — how lovely!",comfort:"The kingfisher, with its brilliant blue and orange plumage, is one of our most dazzling birds.",fact:"The kingfisher is one of Britain's most brilliantly coloured birds. Despite its bright plumage, it can be hard to spot as it sits motionless waiting for fish. It dives at high speed into the water and catches small fish with remarkable accuracy."},
-    {q:"Which black-and-white bird, related to the crow, is famous for collecting shiny objects?",opts:["Jackdaw","Rook","Jay","Magpie"],ans:3,praise:"The magpie — quite right!",comfort:"The magpie is the familiar black-and-white bird of the crow family with a love of shiny things.",fact:"Magpies are highly intelligent birds and, despite their reputation for stealing shiny objects, research has shown they are actually wary of unfamiliar glittering items. They are famously associated with superstition — most people know the rhyme 'one for sorrow, two for joy'."},
-    {q:"Which delicate spring flower, pale yellow and sweetly scented, is one of the first to appear in the new year?",opts:["Snowdrop","Primrose","Celandine","Wild daffodil"],ans:1,praise:"The primrose — perfectly right!",comfort:"The pale yellow primrose is one of the most beloved harbingers of spring.",fact:"The primrose has been a symbol of spring and new beginnings in England for centuries. Its name comes from the Latin for 'first rose' and it was a favourite flower of Queen Victoria and of the Victorian Prime Minister Benjamin Disraeli, who wore one in his buttonhole."},
-  ],
-  northeast: [
-    {q:"What is the name of the famous steel sculpture of a figure with outstretched wings near Gateshead?",opts:["The Northern Spirit","The Gateshead Giant","The Angel of the North","The Tyne Watcher"],ans:2,praise:"The Angel of the North — quite right!",comfort:"The Angel of the North by Antony Gormley stands near Gateshead beside the A1.",fact:"The Angel of the North was created by sculptor Antony Gormley and installed in 1998. Standing 20 metres tall with wings spanning 54 metres, it is one of the most viewed pieces of public art in the world, seen by an estimated 90,000 people every day from the A1 and the East Coast Main Line."},
-    {q:"Which Northumberland island, reached by a tidal causeway, is known as the 'Cradle of Christianity' in England?",opts:["Coquet Island","Farne Island","Inner Farne","Holy Island (Lindisfarne)"],ans:3,praise:"Holy Island — beautifully right!",comfort:"Holy Island, or Lindisfarne, was the cradle of Christianity in northern England.",fact:"Lindisfarne was home to a monastery founded by the Irish monk St Aidan in AD 635. The monks produced the Lindisfarne Gospels, one of the greatest treasures of early medieval art, now kept in the British Library. The island is still cut off by the tide twice a day."},
-    {q:"What is the name of the bridge over the River Tyne in Newcastle, opened in 1928, that inspired the Sydney Harbour Bridge?",opts:["Millennium Bridge","Swing Bridge","Tyne Bridge","High Level Bridge"],ans:2,praise:"The Tyne Bridge — well done!",comfort:"The Tyne Bridge, opened in 1928, inspired the design of the Sydney Harbour Bridge.",fact:"The Tyne Bridge was opened by King George V in October 1928 and became the symbol of Tyneside. Its design was used as a model by the engineers who went on to design the Sydney Harbour Bridge, which opened four years later in 1932."},
-    {q:"Which famous monk, known as the 'Father of English History', lived at Jarrow in the 7th and 8th centuries?",opts:["St Aidan","St Cuthbert","St Wilfrid","The Venerable Bede"],ans:3,praise:"The Venerable Bede — well remembered!",comfort:"The Venerable Bede lived at the monastery of Jarrow and is known as the Father of English History.",fact:"The Venerable Bede spent most of his life at the twin monasteries of Wearmouth and Jarrow and wrote the Ecclesiastical History of the English People, completed in 731. It is the main source for the early history of England and earned him the title 'Father of English History'."},
-    {q:"Which brave young woman rowed through a storm to rescue survivors of the wrecked ship Forfarshire in 1838?",opts:["Emily Davidson","Josephine Butler","Grace Darling","Mary Ann Shadd"],ans:2,praise:"Grace Darling — perfectly right!",comfort:"Grace Darling and her father rowed out from Longstone Lighthouse to rescue survivors of the Forfarshire.",fact:"Grace Darling was the daughter of the lighthouse keeper at Longstone on the Farne Islands. In September 1838, she and her father rowed through a fierce storm to rescue nine survivors from the wrecked SS Forfarshire. She became a national heroine and her story is remembered with great affection in Northumberland."},
-    {q:"What is the name of the annual event in Durham that celebrates the area's coal mining heritage?",opts:["Durham Fair","The Miners Gala","The Durham Festival","The Pitmen's March"],ans:1,praise:"The Miners Gala — quite right!",comfort:"The Durham Miners Gala, known as the 'Big Meeting', is held each July.",fact:"The Durham Miners Gala has been held since 1871 and is one of the largest and oldest trade union events in the world. Colliery brass bands march through the city with their banners, and it remains a joyful celebration of the mining communities of County Durham even decades after the pits have closed."},
-    {q:"Which famous rock musician, born in Wallsend, was the lead singer of The Police?",opts:["Bryan Ferry","Mark Knopfler","Eric Burdon","Sting"],ans:3,praise:"Sting — well remembered!",comfort:"Sting, born Gordon Sumner in Wallsend, was the lead singer of The Police.",fact:"Sting was born Gordon Matthew Thomas Sumner in Wallsend, North Tyneside, in 1951. He got his nickname from a black-and-yellow striped jumper he used to wear. Before his music career he was a schoolteacher in the north east."},
-    {q:"Which great medieval cathedral in Durham is considered one of the finest examples of Norman architecture in Europe?",opts:["York Minster","Hexham Abbey","Ripon Cathedral","Durham Cathedral"],ans:3,praise:"Durham Cathedral — beautifully right!",comfort:"Durham Cathedral is considered one of the greatest Norman buildings in all of Europe.",fact:"Durham Cathedral was begun in 1093 and took about 40 years to build. It houses the remains of Saint Cuthbert and the Venerable Bede, and together with Durham Castle it forms a UNESCO World Heritage Site. Many consider it the most beautiful cathedral in England."},
-    {q:"Which famous film director, born in South Shields, made Blade Runner and Gladiator?",opts:["Ken Loach","Mike Leigh","Alan Parker","Ridley Scott"],ans:3,praise:"Ridley Scott — quite right!",comfort:"Sir Ridley Scott was born in South Shields and went on to direct some of the most celebrated films ever made.",fact:"Sir Ridley Scott was born in South Shields in 1937 and grew up in the north east of England before studying at the Royal College of Art. He went on to direct Alien, Blade Runner, Thelma and Louise, Gladiator, and many other acclaimed films, becoming one of the most respected directors in cinema history."},
-    {q:"What is the name of the blinking, winking footbridge across the River Tyne between Gateshead and Newcastle?",opts:["Swing Bridge","High Level Bridge","Tyne Bridge","Millennium Bridge"],ans:3,praise:"The Millennium Bridge — perfectly right!",comfort:"The Gateshead Millennium Bridge tilts like a blinking eye to let tall ships pass underneath.",fact:"The Gateshead Millennium Bridge opened in 2001 and is the world's first tilting bridge. It tilts like a slowly closing eye to allow boats to pass, taking about four and a half minutes to open fully. It won the RIBA Stirling Prize for architecture in 2002 and has become a much-loved symbol of the regenerated Tyneside."},
-  ],
+var BANK={
+garden:[
+{q:"Which flower is sometimes called 'the queen of flowers' and was the symbol of both warring houses in the Wars of the Roses?",opts:["Dahlia","Rose","Sweet Pea","Lily"],ans:1,praise:"Quite right — the rose!",comfort:"It's the rose, our most beloved flower.",fact:"The red rose was the badge of Lancaster, the white rose of York — which is why, after the two houses united, the Tudor Rose combined both colours. Yorkshire still celebrates the white rose to this day."},
+{q:"Sweet peas are cherished in English cottage gardens. What quality makes them especially prized by gardeners?",opts:["Their thornless stems","Their wonderful scent","Their speed of growth","Their very long vase life"],ans:1,praise:"Spot on — their heavenly scent!",comfort:"It's their wonderful fragrance.",fact:"Sweet peas were introduced to Britain from Sicily in the late 1600s and became enormously fashionable in Edwardian times. Picking them regularly is the secret to keeping them flowering for months."},
+{q:"Which landscape gardener, known as 'Capability Brown', transformed over 170 English estates in the 18th century?",opts:["Humphry Repton","Alan Titchmarsh","Lancelot Brown","William Kent"],ans:2,praise:"Brilliant — Lancelot Brown, known as Capability Brown!",comfort:"It was Lancelot Brown — always called Capability Brown.",fact:"Brown earned his famous nickname because he always told wealthy clients their estates had great 'capabilities' for improvement. His sweeping naturalistic landscapes replaced formal gardens at Chatsworth, Blenheim, and Petworth among many others."},
+{q:"The Chelsea Flower Show takes place in the grounds of the Royal Hospital Chelsea every year. In which month is it held?",opts:["March","September","May","July"],ans:2,praise:"Correct — it's held in May!",comfort:"It's held in May.",fact:"The Chelsea Flower Show has been held in the grounds of the Royal Hospital since 1913, interrupted only by two World Wars. A ticket to the private evening preview is one of the most coveted invitations in London."},
+{q:"Which tall cottage garden plant, beloved by bumblebees, gave science the heart medicine digitalis?",opts:["Hollyhock","Lupin","Foxglove","Delphinium"],ans:2,praise:"Quite right — the foxglove!",comfort:"It's the beautiful foxglove.",fact:"Digitalis purpurea — the common foxglove — was identified as a heart medicine by physician William Withering in 1785. The drug digoxin, still used today to treat heart conditions, comes directly from this British wildflower."},
+{q:"Which fragrant climbing plant, producing hanging clusters of lilac or white flowers, was brought to Britain from China and Japan in the early 19th century?",opts:["Clematis","Wisteria","Honeysuckle","Virginia Creeper"],ans:1,praise:"Quite right — wisteria!",comfort:"It's wisteria.",fact:"The famous Japanese wisteria at Kew Gardens was planted in 1816 and is now over 200 years old. Wisteria can live for centuries — some plants in Japan are considered national treasures."},
+{q:"In gardening, 'deadheading' means removing which part of a plant?",opts:["Dead leaves at the base","Spent or faded flowers","Suckers from the roots","Brown tips of leaves"],ans:1,praise:"Exactly right!",comfort:"It means removing the faded flowers.",fact:"Deadheading tricks the plant into producing more flowers instead of setting seed. On roses and sweet peas, regular deadheading can keep blooms coming from June all the way through to the first frosts of autumn."},
+{q:"Tulip bulbs need to be planted in which season to produce a beautiful spring display in the garden?",opts:["Spring","Summer","Autumn","Midwinter"],ans:2,praise:"Spot on — plant them in autumn!",comfort:"Autumn is the time to plant them.",fact:"Tulips originated in Central Asia and need a cold winter dormancy to flower well. Planting in October and November gives them the cold period they need — and by April the garden rewards you with a blaze of colour."},
+{q:"Garden designer Gertrude Jekyll created over 400 gardens. She is especially famous for her painterly use of which design element?",opts:["Topiary and clipped hedges","Colour — using plants like an artist's palette","Water features and fountains","Kitchen gardens and vegetables"],ans:1,praise:"Perfectly right — her use of colour!",comfort:"It was her brilliant use of colour.",fact:"Gertrude Jekyll trained originally as an artist and approached planting design like painting. Her long herbaceous borders — building from pale yellows at each end through to hot reds in the centre — transformed British garden design."},
+{q:"The famous White Garden at Sissinghurst Castle in Kent, using only white and silver-leaved plants, was created by which gardening writer?",opts:["Penelope Hobhouse","Beth Chatto","Vita Sackville-West","Margery Fish"],ans:2,praise:"Well remembered — Vita Sackville-West!",comfort:"It was Vita Sackville-West.",fact:"Vita Sackville-West and her husband Harold Nicolson created the garden at Sissinghurst from a derelict castle from 1930 onwards. The White Garden, planted in the 1950s, has since inspired white gardens all over the world."}
+],
+history:[
+{q:"Queen Victoria reigned from 1837 to 1901 — 63 years. Which year did she come to the throne?",opts:["1830","1837","1840","1845"],ans:1,praise:"Quite right — 1837!",comfort:"She came to the throne in 1837.",fact:"Victoria was just 18 years old when she became queen, and she went on to reign longer than any British monarch before her — until Queen Elizabeth II surpassed her record in 2015. Victoria was grandmother to Kaiser Wilhelm II of Germany and Tsar Nicholas II of Russia."},
+{q:"The Battle of Hastings in 1066 changed English history forever. On which date in October did it take place?",opts:["1st October","9th October","14th October","25th October"],ans:2,praise:"Absolutely right — 14th October 1066!",comfort:"It was the 14th of October.",fact:"The battle lasted roughly nine hours, from about 9am until dusk. King Harold II was killed — most likely by an arrow, though the famous image from the Bayeux Tapestry shows this rather than proves it. William the Conqueror was crowned on Christmas Day 1066."},
+{q:"Henry VIII famously had six wives. Which Spanish princess was his first queen, and remained married to him for over 20 years?",opts:["Anne Boleyn","Catherine Howard","Catherine of Aragon","Jane Seymour"],ans:2,praise:"Well remembered — Catherine of Aragon!",comfort:"It was Catherine of Aragon.",fact:"Catherine of Aragon was first married to Henry's elder brother Prince Arthur in 1501, but Arthur died just months later. She then married Henry in 1509 and remained queen for 24 years before Henry sought an annulment, sparking the English Reformation."},
+{q:"The Magna Carta was sealed at Runnymede meadow in 1215. Which king was forced to agree to it by his barons?",opts:["King Henry II","King John","King Richard I","King Henry III"],ans:1,praise:"Quite correct — King John!",comfort:"It was King John.",fact:"King John sealed the Magna Carta on 15 June 1215. It established for the first time that the king was subject to the rule of law — a principle that underpins British and American constitutional law to this day. Four original copies survive, two in the British Library."},
+{q:"Florence Nightingale transformed nursing during which 19th century war, reducing death rates at her hospital from 42% to around 2%?",opts:["The Boer War","The Crimean War","The Napoleonic Wars","The First World War"],ans:1,praise:"Correct — the Crimean War!",comfort:"It was during the Crimean War.",fact:"Florence Nightingale arrived at Scutari hospital in 1854 with 38 nurses. She discovered that most deaths were caused by poor sanitation rather than battle wounds — and her meticulous record-keeping helped prove it. She also pioneered the use of statistics to improve medical care."},
+{q:"Victory in Europe Day — VE Day — was celebrated with enormous street parties across Britain on which date in 1945?",opts:["1st May 1945","8th May 1945","15th May 1945","4th June 1945"],ans:1,praise:"Spot on — 8th May 1945!",comfort:"It was 8th May 1945.",fact:"On VE Day, King George VI and Queen Elizabeth appeared eight times on the Buckingham Palace balcony to acknowledge the crowds. Winston Churchill told the assembled people: 'This is your victory!' — to which the crowd roared back: 'No — it is yours!'"},
+{q:"The Great Fire of London broke out in Pudding Lane on the 2nd of September in which year?",opts:["1605","1666","1715","1752"],ans:1,praise:"Well done — 1666!",comfort:"It was in 1666.",fact:"The fire burned for four days and nights, destroying 13,200 houses, 87 churches, and St Paul's Cathedral — yet the death toll recorded at the time was remarkably low, perhaps only six people. Samuel Pepys famously described seeing the sky over London turned completely red."},
+{q:"When the Spanish Armada threatened England in 1588, which queen delivered a famous speech to troops at Tilbury?",opts:["Mary I","Mary Queen of Scots","Elizabeth I","Anne Boleyn"],ans:2,praise:"Correct — Elizabeth I!",comfort:"It was the great Elizabeth I.",fact:"Elizabeth I rode to the troops at Tilbury in Essex and declared: 'I know I have the body of a weak and feeble woman, but I have the heart and stomach of a king.' The Armada was wrecked less by English guns than by violent storms in the North Sea."},
+{q:"The Duke of Wellington defeated Napoleon at the Battle of Waterloo in 1815. Wellington later served twice as British what?",opts:["Lord High Admiral","Prime Minister","Lord Chancellor","Foreign Secretary"],ans:1,praise:"Quite right — he became Prime Minister!",comfort:"He became Prime Minister.",fact:"Wellington served as Prime Minister from 1828 to 1830, though he was far better suited to the battlefield than to politics. He also gave his name to Wellington boots — he asked his shoemaker to adapt the Hessian boot into a more practical design, and they became fashionable across England."},
+{q:"Henry VIII's dissolution of the monasteries between 1536 and 1541 left many beautiful ruins across England. How many monasteries were closed in total?",opts:["Around 80","Around 200","Around 500","Around 800"],ans:3,praise:"Quite right — about 800!",comfort:"Around 800 monasteries were closed.",fact:"The dissolution transferred enormous wealth from the Church to the Crown. The ruins of places like Fountains Abbey in Yorkshire, Tintern Abbey in Wales, and Lindisfarne Priory in Northumberland are among the most atmospheric sights in England."}
+],
+houses:[
+{q:"Alnwick Castle in Northumberland served as a filming location for which famous film series, beginning in the year 2000?",opts:["The Lord of the Rings","Downton Abbey","Harry Potter","Braveheart"],ans:2,praise:"Absolutely right — Harry Potter!",comfort:"It was used for Harry Potter.",fact:"Alnwick's outer bailey was used for the first broomstick flying lesson in Harry Potter and the Philosopher's Stone. The castle has belonged to the Percy family — the Dukes of Northumberland — since 1309, making it one of England's longest-inhabited fortresses."},
+{q:"Castle Howard in North Yorkshire was the filming location for the 1981 television adaptation of which Evelyn Waugh novel?",opts:["Howards End","The Remains of the Day","Brideshead Revisited","Gosford Park"],ans:2,praise:"Well remembered — Brideshead Revisited!",comfort:"It was used for Brideshead Revisited.",fact:"Castle Howard was designed by Sir John Vanbrugh and Nicholas Hawksmoor beginning in 1699 — it was Vanbrugh's very first architectural commission. Remarkably, it has a dome that predates the rebuilt St Paul's Cathedral. The Howard family still live there today."},
+{q:"Chatsworth House in Derbyshire, one of England's grandest stately homes, is the seat of which ducal family?",opts:["The Spencer family","The Cavendish family, Dukes of Devonshire","The Howard family, Dukes of Norfolk","The Percy family, Dukes of Northumberland"],ans:1,praise:"Perfectly right — the Cavendish family!",comfort:"It's the Cavendish family.",fact:"The Cavendish family have lived at Chatsworth since 1549. The 6th Duke employed Joseph Paxton, who designed the Great Conservatory there — an experience that inspired Paxton's later masterpiece, the Crystal Palace for the Great Exhibition of 1851."},
+{q:"Spectacular Bamburgh Castle on the Northumberland coast stands on an outcrop of which volcanic rock?",opts:["Granite","Limestone","Basalt","Sandstone"],ans:2,praise:"Quite right — it sits on basalt!",comfort:"It stands on volcanic basalt rock.",fact:"Bamburgh was the royal stronghold of the ancient kingdom of Northumbria. Grace Darling — the lighthouse keeper's daughter who rowed through mountainous seas to rescue shipwreck survivors in 1838 — is buried in the churchyard of the nearby village."},
+{q:"Hadrian's Wall was built across northern Britain in 122 AD. How long is it from the Solway Firth to Wallsend on the Tyne?",opts:["55 miles","73 miles","90 miles","110 miles"],ans:1,praise:"Spot on — 73 miles!",comfort:"It stretches for 73 miles.",fact:"Hadrian's Wall was built in just six years by Roman legionary soldiers — an extraordinary feat of engineering across boggy moorland. The name Wallsend (Segedunum in Latin) means exactly what it says: it was built at the eastern end of the wall, where it met the River Tyne."},
+{q:"Durham Cathedral, a UNESCO World Heritage Site, is famous as the resting place of which Northumbrian saint who died in 687 AD?",opts:["St Aidan","St Cuthbert","St Bede","St Wilfrid"],ans:1,praise:"Correct — Saint Cuthbert!",comfort:"Saint Cuthbert rests there.",fact:"Cuthbert was the most venerated saint in medieval England. After his death on Lindisfarne, his monks carried his remains around Northumbria for 120 years to protect them from Viking raids before finally settling in Durham in 995."},
+{q:"Blenheim Palace in Oxfordshire was given to the first Duke of Marlborough after his victory in 1704. Which future Prime Minister was born there in 1874?",opts:["Lloyd George","Clement Attlee","Winston Churchill","Stanley Baldwin"],ans:2,praise:"Absolutely right — Winston Churchill!",comfort:"It was Winston Churchill.",fact:"Churchill was born prematurely at Blenheim on 30 November 1874 during a ball. He is buried in the simple churchyard at Bladon, close to the palace, as he wished. Blenheim is the only non-royal, non-episcopal house in England to hold the title 'Palace.'"},
+{q:"The Lindisfarne Gospels, created around 715 AD by the monk Eadfrith, are now kept in which great library?",opts:["The Bodleian Library, Oxford","The British Library, London","The National Library of Scotland","Durham University Library"],ans:1,praise:"Quite right — the British Library!",comfort:"They are in the British Library in London.",fact:"Eadfrith almost certainly worked alone, spending years on the manuscript. Each elaborate 'carpet page' would have taken months of meticulous work. The Gospels were probably meant for display on the high altar on feast days rather than for reading."},
+{q:"Wallington Hall in Northumberland has a famous central hall decorated with eight large paintings of Northumbrian history. Who commissioned and funded the project?",opts:["The Duke of Northumberland","Walter Calverley Trevelyan and his wife Pauline","The National Trust","The Royal Academy"],ans:1,praise:"Well done — the Trevelyans!",comfort:"It was Walter and Pauline Trevelyan.",fact:"Pauline Trevelyan was a brilliant patron of the arts who brought together Ruskin, Rossetti, and other Pre-Raphaelite artists at Wallington. She oversaw the painting of the central hall herself. Wallington was given to the National Trust in 1941."},
+{q:"Seaton Delaval Hall in Northumberland was designed by Sir John Vanbrugh. It was largely gutted by fire in which year?",opts:["1756","1798","1822","1860"],ans:2,praise:"Quite right — 1822!",comfort:"The fire was in 1822.",fact:"The fire left Seaton Delaval as a dramatic roofless shell for nearly 200 years. The National Trust acquired it in 2009 and has carefully consolidated and opened the ruins to the public. Vanbrugh, who also designed Castle Howard and Blenheim, began his career as a playwright."}
+],
+radio4:[
+{q:"The Archers, the world's longest-running radio drama, was first broadcast on BBC Radio 4 in January of which year?",opts:["1945","1951","1957","1963"],ans:1,praise:"Right first time — 1951!",comfort:"It first aired in 1951.",fact:"The Archers was originally devised as an educational programme to help British farmers modernise after the war. It is set in the fictional village of Ambridge in Borsetshire — and the programme still employs an agricultural story editor to keep the farming details accurate."},
+{q:"On Desert Island Discs, each castaway chooses eight records. What two other things are they also allowed to take?",opts:["A book and a luxury item","A pet and a photograph","A tool and a memento","A friend and a blanket"],ans:0,praise:"Quite right — a book and a luxury!",comfort:"It's a book and a luxury item.",fact:"The Bible and the complete works of Shakespeare are provided automatically, so the book must be something different. The programme was created by Roy Plomley in 1942. Kirsty Young and Lauren Laverne are among its much-loved recent presenters."},
+{q:"In the Radio 4 panel game Just a Minute, players must speak for 60 seconds without hesitation, repetition, or what third offence?",opts:["Mispronunciation","Swearing","Deviation","Speaking too quietly"],ans:2,praise:"Absolutely right — deviation!",comfort:"The third rule is no deviation.",fact:"Just a Minute was created by Ian Messiter, who said the idea came to him in a dream about a strict schoolmaster. It has been broadcast since 1967 and is associated above all with the late Nicholas Parsons, who chaired the show for over 50 years."},
+{q:"Melvyn Bragg has presented In Our Time — Radio 4's programme exploring the history of ideas — since which year?",opts:["1990","1994","1998","2003"],ans:2,praise:"Quite correct — 1998!",comfort:"It began in 1998.",fact:"Melvyn Bragg was born in Wigton in Cumbria and has spoken of the North of England as the great influence on his intellectual life. In Our Time has covered everything from the Black Death to the Fibonacci sequence — and Bragg famously reads extensively before each programme."},
+{q:"Woman's Hour first broadcast on BBC radio in which year — making it one of the world's longest-running programmes for women?",opts:["1940","1946","1952","1958"],ans:1,praise:"Spot on — 1946!",comfort:"It began in 1946.",fact:"Woman's Hour began on the BBC Home Service in October 1946 and moved to Radio 4 when that network launched. It has tackled everything from recipes in its early days to groundbreaking investigations of equal pay, domestic violence, and women's health."},
+{q:"Which brief Radio 4 programme, broadcast at 6:55 each weekday morning, celebrates a different British bird with a recording of its song?",opts:["Thought for the Day","Nature Notes","Tweet of the Day","The Dawn Chorus"],ans:2,praise:"Well remembered — Tweet of the Day!",comfort:"It's Tweet of the Day.",fact:"Tweet of the Day began in 2013 to mark the centenary of the British Trust for Ornithology. Each episode is just two minutes long — a recording of the bird followed by a beautifully written description. It has introduced many listeners to birds they had never noticed in their own gardens."},
+{q:"Who created Desert Island Discs in 1942 and presented it himself for over 40 years?",opts:["Richard Dimbleby","Roy Plomley","Alistair Cooke","Franklin Engelmann"],ans:1,praise:"Correct — Roy Plomley!",comfort:"It was Roy Plomley.",fact:"Roy Plomley presented Desert Island Discs from its first broadcast in January 1942 until shortly before his death in 1985 — 43 years. His first castaway was the comedian Vic Oliver, chosen simply because he was the only person Plomley could reach by telephone at the time."},
+{q:"In The Archers, which long-suffering Ambridge family — famous for their misfortunes and association with pigs — includes the characters Eddie and Joe?",opts:["The Aldridges","The Grundys","The Archers themselves","The Carters"],ans:1,praise:"Quite right — the Grundys!",comfort:"It's the much-loved Grundy family.",fact:"The Grundys have been a central part of The Archers since 1953. Eddie's aspiration to become a country music star, and Joe's magnificent stubbornness, have made them among the most popular characters in the programme's history."},
+{q:"Radio 4's flagship morning news programme, Today, is broadcast between which hours on weekday mornings?",opts:["5am to 7am","6am to 9am","7am to 10am","8am to 11am"],ans:1,praise:"Spot on — 6am to 9am!",comfort:"It runs from 6 to 9 in the morning.",fact:"The Today programme began in 1957 and is now one of the most influential news broadcasts in Britain — politicians speak of 'a difficult Today interview' as something to be feared. Its presenters have included John Humphrys, Brian Redhead, and Sarah Montague."},
+{q:"Radio 4's famous Shipping Forecast is broadcast four times daily. What comes immediately before the late-night reading at around 00:48?",opts:["The World Tonight","Sailing By — a gentle piece of light music","The National Anthem","A BBC News summary"],ans:1,praise:"Well remembered — Sailing By!",comfort:"It's preceded by Sailing By.",fact:"Sailing By — a waltz composed by Ronald Binge in 1963 — plays before the late-night Shipping Forecast to allow ships' radio operators to tune in and prepare. Countless landlocked listeners across Britain have found it the most soothing piece of music imaginable for falling asleep to."}
+],
+nature:[
+{q:"The robin, often called Britain's unofficial national bird, was voted the nation's favourite bird in a public poll in 2015. Who organised the poll?",opts:["The RSPB","The Wildlife Trusts","David Lindo, the Urban Birder","The National Trust"],ans:2,praise:"Quite right — David Lindo organised the poll!",comfort:"It was a poll organised by birdwatcher David Lindo.",fact:"David Lindo's nationwide poll attracted over 200,000 votes — the robin won with 34% of the vote, ahead of the barn owl, blackbird, and puffin. The robin has long been associated with Christmas cards because Victorian postmen wore red uniforms and were nicknamed 'Robins.'"},
+{q:"Britain is home to approximately what fraction of the entire world's population of native bluebells?",opts:["One tenth","One quarter","One third","One half"],ans:3,praise:"Spot on — roughly half!",comfort:"Britain holds about half the world's bluebells.",fact:"The native English bluebell (Hyacinthoides non-scripta) is under threat from the Spanish bluebell, an introduced species which hybridises with it. It is protected by law in Britain — it is illegal to dig up wild bluebells. Ancient bluebell woods are a sign of long-undisturbed countryside."},
+{q:"Red squirrels have been displaced across most of England by the American grey squirrel, which was introduced to Britain in which decade?",opts:["The 1850s","The 1870s","The 1910s","The 1930s"],ans:1,praise:"Quite right — the 1870s!",comfort:"They arrived in the 1870s.",fact:"The first grey squirrels were released at Henbury Park in Cheshire in 1876. Red squirrels survive in Northumberland (particularly Kielder Forest), the Lake District, and some Scottish islands — places where active conservation keeps the greys at bay."},
+{q:"Hedgehog numbers in Britain have fallen dramatically since the 1950s. Approximately how many hedgehogs are thought to remain in Britain today?",opts:["Around 30 million","Around 10 million","Around 1 million","Around 100,000"],ans:2,praise:"Quite right — roughly one million!",comfort:"About one million remain.",fact:"In the 1950s there were an estimated 30 million hedgehogs in Britain. Today conservation groups estimate fewer than one million survive. The main causes are habitat loss, pesticides, and busy roads. A simple hole in a garden fence can help by letting them roam freely."},
+{q:"Which colour best describes the eggs of the robin?",opts:["Speckled brown","Plain white","Pale blue with faint reddish speckles","Bright blue"],ans:2,praise:"Well remembered — pale blue with reddish speckles!",comfort:"They are a pale blue with reddish speckles.",fact:"The female robin incubates the eggs alone for 13 to 14 days. Robins may raise two or three broods per year, often beginning as early as March. They are famously bold around gardeners — they have learned over centuries that a spade means earthworms."},
+{q:"The osprey returned to breed in Britain in 1954 after an absence of 50 years. At which Scottish loch did it first re-establish itself?",opts:["Loch Ness","Loch Lomond","Loch Garten","Loch Tay"],ans:2,praise:"Spot on — Loch Garten!",comfort:"It was Loch Garten in Speyside.",fact:"The RSPB has guarded the Loch Garten osprey nest continuously since 1954. Ospreys have since spread south — there are now breeding pairs in Wales and northern England. Ospreys migrate all the way from West Africa each spring, sometimes passing over Northumberland on their journey north."},
+{q:"Which British butterfly has distinctively jagged, irregular wing edges and a small white comma-shaped mark on its underwings?",opts:["The Painted Lady","The Comma","The Orange Tip","The Brimstone"],ans:1,praise:"Correct — the Comma butterfly!",comfort:"It's the Comma.",fact:"The Comma butterfly was in serious decline by the early 20th century but has made a remarkable recovery and is now spreading northward. The jagged wing edges make it look like a dead leaf when resting, providing excellent camouflage."},
+{q:"In which months would you typically expect to first hear a cuckoo calling in northern England?",opts:["January or February","March or April","Late April or May","June or July"],ans:2,praise:"Quite right — late April or May!",comfort:"Cuckoos arrive in late April or May.",fact:"Cuckoos are one of our most eagerly awaited summer visitors — they spend winter in the Congo rainforest and arrive in Britain from late April. Their numbers have declined by 65% since the 1980s, possibly due to declining caterpillar numbers and difficulties on their African migration routes."},
+{q:"The delicate wood anemone is an 'ancient woodland indicator plant.' This means it suggests the wood has been continuously wooded for how long?",opts:["At least 100 years","At least 250 years","At least 400 years","At least 1,000 years"],ans:2,praise:"Well done — at least 400 years!",comfort:"It suggests woodland of at least 400 years.",fact:"Wood anemones spread extremely slowly — just a few feet per century — so finding them carpeting a woodland floor is a strong sign that woodland has stood there for many centuries. They are among the first flowers to appear in spring, often poking up through snow."},
+{q:"Which common British tree, known in the North of England as the mountain ash, produces brilliant scarlet berries in autumn and was traditionally planted near houses to ward off witches?",opts:["Elder","Blackthorn","Hawthorn","Rowan"],ans:3,praise:"Quite right — the rowan!",comfort:"It's the beautiful rowan tree.",fact:"Rowan trees are remarkably tough and can survive at higher altitudes than almost any other British tree. Their berries are a vital food source for fieldfares, redwings, and mistle thrushes arriving from Scandinavia in autumn."}
+],
+northeast:[
+{q:"The Gateshead Millennium Bridge, which tilts like a blinking eye to allow ships through, won the Stirling Prize for architecture in which year?",opts:["1998","2000","2002","2005"],ans:2,praise:"Quite right — 2002!",comfort:"It won in 2002.",fact:"The Gateshead Millennium Bridge was the world's first tilting bridge. Designed by Wilkinson Eyre Architects, it weighs 800 tonnes and rotates on a horizontal axis in around four minutes. It has become one of the most photographed bridges in Britain."},
+{q:"The Venerable Bede, author of the Ecclesiastical History of the English People, completed his masterwork in which year?",opts:["685 AD","731 AD","793 AD","850 AD"],ans:1,praise:"Absolutely right — 731 AD!",comfort:"It was completed in 731 AD.",fact:"Bede spent nearly his entire life at the twin monastery of Wearmouth-Jarrow. He never travelled more than about 50 miles from home, yet his Ecclesiastical History became famous across all of Europe within his own lifetime. He was the first person to use 'AD' dating — his invention."},
+{q:"The Lindisfarne Gospels were created on Holy Island around 715 AD by the monk Eadfrith. They are now kept in which London institution?",opts:["The Victoria and Albert Museum","The British Museum","The British Library","The National Gallery"],ans:2,praise:"Well done — the British Library!",comfort:"They are in the British Library.",fact:"The Lindisfarne Gospels have been in London since 1753. There is a strong movement in Northumberland to have them returned — at least on loan — to the North East. A full colour facsimile is displayed at Lindisfarne Castle."},
+{q:"Grace Darling's famous rescue took place on 7th September 1838, when she and her father rowed from Longstone lighthouse to save survivors from which wrecked ship?",opts:["SS Great Britain","SS Forfarshire","HMS Victory","SS Great Western"],ans:1,praise:"Absolutely right — the SS Forfarshire!",comfort:"It was the SS Forfarshire.",fact:"Grace Darling was 22 years old and rowed through mountainous seas in the early morning darkness. She became an immediate national celebrity — her portrait was painted by many artists, and she received hundreds of letters and gifts. She died of tuberculosis just four years later, aged 26."},
+{q:"The Angel of the North, designed by Antony Gormley and unveiled in 1998, stands 20 metres tall. How wide is its wingspan?",opts:["20 metres","30 metres","54 metres","75 metres"],ans:2,praise:"Well done — 54 metres!",comfort:"Its wingspan is 54 metres.",fact:"The Angel's wingspan of 54 metres is wider than a Boeing 757 aircraft. It weighs 208 tonnes and is built to withstand winds of over 100 miles per hour — its foundations go 20 metres underground. An estimated 90,000 people drive past it every single day."},
+{q:"In the Geordie dialect of Tyneside, the word 'canny' is used warmly as a compliment. It most closely means which of the following?",opts:["Very clever","Good, kind, and pleasant","Extremely funny","Brave or bold"],ans:1,praise:"Canny right, pet!",comfort:"It means good, kind, or pleasant.",fact:"'Canny' is one of the most characteristic Geordie words — 'a canny lass' or 'a canny lad' describes someone who is kind, sensible, and decent. It derives from a Scottish Gaelic root meaning 'to know' or 'to be able' — suggesting someone who knows how to behave well."},
+{q:"Emperor Hadrian ordered the building of his famous wall during a visit to Britain. In which year did he visit?",opts:["55 BC","78 AD","122 AD","200 AD"],ans:2,praise:"Correct — 122 AD!",comfort:"Hadrian visited in 122 AD.",fact:"Hadrian was a great traveller — he spent more time outside Rome than any other emperor, touring the frontiers of his vast empire. The east end of his wall at Segedunum (Wallsend) had a bath-house and a garrison of several hundred soldiers."},
+{q:"The Percy family — Dukes of Northumberland — have owned Alnwick Castle for over 700 years. Since which year?",opts:["1066","1200","1309","1485"],ans:2,praise:"Quite right — since 1309!",comfort:"The Percys have been there since 1309.",fact:"The Percy family are one of the most powerful dynasties in English history — their motto 'Esperance' (Hope) has been their banner since the medieval period. The Duke of Northumberland and his family still live in part of the castle today."},
+{q:"The Northumberland Coast was designated an Area of Outstanding Natural Beauty in which decade?",opts:["1940s","1950s","1970s","1990s"],ans:1,praise:"Spot on — in the 1950s!",comfort:"It was designated in the 1950s.",fact:"The Northumberland Coast AONB was designated in 1958. It stretches for 25 miles from Berwick-upon-Tweed to Amble and includes Holy Island, the Farne Islands, Bamburgh, and Dunstanburgh. Its beaches are often empty even in summer."},
+{q:"The Jarrow March of 1936 saw 200 unemployed men walk from Jarrow to London to petition Parliament. How many miles did they walk?",opts:["150 miles","200 miles","280 miles","350 miles"],ans:2,praise:"Quite right — 280 miles!",comfort:"They walked approximately 280 miles.",fact:"The Jarrow Crusade took 26 days. The men carried a petition with 11,000 signatures. Despite enormous public sympathy, the government offered them nothing — and the men had to pay their own train fares home. The march has become one of the most enduring symbols of working-class dignity in British history."}
+]
 };
 
-// ══════════════════════════════════════════════
-//  STATE
-// ══════════════════════════════════════════════
-let voices = [];
-let voiceUnlocked = false;
-let currentTopic = null;
-let questions = [];
-let qIndex = 0;
-let score = 0;
-let answered = false;
-
-// ══════════════════════════════════════════════
-//  UTILITIES
-// ══════════════════════════════════════════════
-function show(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  window.scrollTo(0, 0);
+var topic=null,qs=[],cur=0,score=0,busy=false;
+var NAMES={garden:'Gardening',history:'English History',houses:'Historic Houses',radio4:'BBC Radio 4',nature:'Nature & Wildlife',northeast:'The North East'};
+var voices=[];
+function loadV(){if(window.speechSynthesis)voices=window.speechSynthesis.getVoices();}
+if(window.speechSynthesis){loadV();window.speechSynthesis.onvoiceschanged=loadV;}
+function speak(txt,cb){
+  if(!window.speechSynthesis){if(cb)cb();return;}
+  window.speechSynthesis.cancel();
+  var u=new SpeechSynthesisUtterance(txt);
+  u.rate=0.87;u.pitch=1.06;u.volume=1;
+  var v=null;
+  for(var i=0;i<voices.length;i++){if(voices[i].lang==='en-GB'&&/kate|serena|amy|emma|female|woman/i.test(voices[i].name)){v=voices[i];break;}}
+  if(!v)for(var i=0;i<voices.length;i++){if(voices[i].lang==='en-GB'){v=voices[i];break;}}
+  if(!v)for(var i=0;i<voices.length;i++){if(voices[i].lang.indexOf('en')===0){v=voices[i];break;}}
+  if(v)u.voice=v;
+  var b=document.getElementById('spk-bar');
+  if(b)b.classList.add('on');
+  u.onend=u.onerror=function(){if(b)b.classList.remove('on');if(cb)cb();};
+  window.speechSynthesis.speak(u);
 }
-
-function stopSpeech() {
-  if (window.speechSynthesis) { window.speechSynthesis.cancel(); }
+function show(id){['s-topic','s-quiz','s-end'].forEach(function(s){var el=document.getElementById(s);el.classList[s===id?'add':'remove']('active');});}
+function pick(btn){document.querySelectorAll('.topic-btn').forEach(function(b){b.classList.remove('sel');});btn.classList.add('sel');topic=btn.getAttribute('data-t');document.getElementById('start-btn').disabled=false;}
+function startQuiz(){
+  if(!topic)return;
+  var pool=BANK[topic].slice();
+  for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+  qs=pool.slice(0,10);cur=0;score=0;
+  document.getElementById('ttag-el').textContent=NAMES[topic];
+  show('s-quiz');renderQ();
 }
-
-function getVoice() {
-    const voices = window.speechSynthesis.getVoices();
-    if (!voices.length) return null;
-    const topTier = ['Serena','Martha','Libby','Hazel','Daniel','Arthur','Kate'];
-    const brit = voices.filter(v => /en.GB/i.test(v.lang));
-    const otherEn = voices.filter(v => /en/i.test(v.lang) && !/en.GB/i.test(v.lang));
-    const topBrit = brit.filter(v => topTier.some(t => v.name.includes(t)));
-    const enhBrit = topBrit.filter(v => /enhanced|premium/i.test(v.name));
-    return [...enhBrit, ...topBrit, ...brit, ...otherEn, ...voices][0] || null;
-  }
-
-let _ttsAudio=null,_cv=null;function _iv(){const vs=window.speechSynthesis?speechSynthesis.getVoices():[];if(!vs.length)return;const P=['Serena','Martha','Libby','Hazel'];const gb=vs.filter(v=>/en.?GB/i.test(v.lang));for(const n of P){const v=gb.find(v=>v.name.includes(n)&&/enhanced|premium/i.test(v.name));if(v){_cv=v;return;}}for(const n of P){const v=gb.find(v=>v.name.includes(n));if(v){_cv=v;return;}}if(gb.length){_cv=gb[0];return;}_cv=vs.find(v=>/^en/i.test(v.lang))||vs[0]||null;}if(typeof speechSynthesis!=='undefined'){speechSynthesis.onvoiceschanged=_iv;_iv();}function _sp(t,max=185){if(t.length<=max)return[t];const r=[];let s=t;while(s.length>max){let i=s.lastIndexOf('. ',max);if(i<40)i=s.lastIndexOf(', ',max);if(i<40)i=max;r.push(s.slice(0,i+1).trim());s=s.slice(i+1).trim();}if(s)r.push(s);return r.filter(p=>p);}async function speak(text){if(!text)return;if(_ttsAudio){_ttsAudio.pause();_ttsAudio=null;}if(window.speechSynthesis)speechSynthesis.cancel();for(const c of _sp(text.trim())){try{const a=new Audio('/api/tts?text='+encodeURIComponent(c));a.volume=0.92;_ttsAudio=a;await new Promise((ok,fail)=>{a.onended=ok;a.onerror=fail;a.play().catch(fail);});}catch(e){if(!_cv)_iv();const u=new SpeechSynthesisUtterance(text);u.rate=0.88;u.pitch=1.0;u.lang='en-GB';if(_cv)u.voice=_cv;if(window.speechSynthesis){speechSynthesis.cancel();speechSynthesis.speak(u);}return;}}}
-
-function unlockAudio() {
-  if (voiceUnlocked || !window.speechSynthesis) return;
-  try {
-    const u = new SpeechSynthesisUtterance(' ');
-    u.volume = 0;
-    window.speechSynthesis.speak(u);
-    voiceUnlocked = true;
-  } catch(e) {}
-}
-
-// ══════════════════════════════════════════════
-//  VOICE PICKER
-// ══════════════════════════════════════════════
-function populateVoices() { /* ResponsiveVoice handles this */ }
-
-if (window.speechSynthesis) {
-  populateVoices();
-  window.speechSynthesis.addEventListener('voiceschanged', populateVoices);
-}
-
-// ══════════════════════════════════════════════
-//  BUILD TOPIC GRID
-// ══════════════════════════════════════════════
-const grid = document.getElementById('topicGrid');
-TOPICS.forEach(t => {
-  const btn = document.createElement('button');
-  btn.className = 'topic-btn';
-  btn.innerHTML = `<span class="topic-icon">${t.icon}</span><span class="topic-name">${t.name}</span><span class="topic-sub">${t.sub}</span>`;
-  btn.addEventListener('click', () => startTopic(t));
-  grid.appendChild(btn);
-});
-
-// ══════════════════════════════════════════════
-//  SCREEN TRANSITIONS
-// ══════════════════════════════════════════════
-document.getElementById('beginBtn').addEventListener('click', () => {
-  unlockAudio();
-  show('topics');
-});
-
-document.getElementById('backBtn').addEventListener('click', () => {
-  stopSpeech();
-  show('topics');
-});
-
-(document.getElementById('testVoiceBtn')||{addEventListener:()=>{}}).addEventListener('click', () => {
-  unlockAudio();
-  speak("Hello! How lovely to see you. Let's have a quiz!");
-});
-
-// ═════════════════════════════════════════════
-//  START TOPIC → FETCH QUESTIONS
-// ══════════════════════════════════════════════
-async function startTopic(topic) {
-  currentTopic = topic;
-  document.getElementById('loadingTopicName').textContent =
-    'Getting your ' + topic.name + ' questions ready…';
-  show('loading');
-
-  try {
-    const res = await fetch('/api/quiz?topic=' + topic.id);
-    if (!res.ok) throw new Error('API returned ' + res.status);
-    const data = await res.json();
-    if (!Array.isArray(data) || data.length === 0) throw new Error('Empty response');
-    questions = shuffle(data).slice(0, 10);
-  } catch (err) {
-    console.warn('API failed, using fallback:', err);
-    const fb = FALLBACK[topic.id] || FALLBACK.garden;
-    questions = shuffle([...fb]).slice(0, 10);
-  }
-
-  startQuiz();
-}
-
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-// ═══════════════════════════════════════════════
-//  QUIZ LOGIC
-// ══════════════════════════════════════════════
-function startQuiz() {
-  qIndex = 0; score = 0;
-  show('quiz');
-  renderQuestion();
-}
-
-function renderQuestion() {
-  answered = false;
-  stopSpeech();
-
-  const q = questions[qIndex];
-  const total = questions.length;
-
-  // Progress
-  document.getElementById('progressFill').style.width = ((qIndex / total) * 100) + '%';
-  document.getElementById('qCounter').textContent = (qIndex + 1) + ' / ' + total;
-
-  // Question
-  document.getElementById('qText').textContent = q.q;
-
-  // Options
-  const opts = document.getElementById('optionsEl');
-  opts.innerHTML = '';
-  q.opts.forEach((opt, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'opt-btn';
-    btn.textContent = opt;
-    btn.addEventListener('click', () => chooseAnswer(i));
-    opts.appendChild(btn);
+function renderQ(){
+  busy=false;
+  var q=qs[cur];
+  document.getElementById('qcount-el').textContent='Question '+(cur+1)+' of '+qs.length;
+  document.getElementById('score-el').textContent='Score: '+score;
+  document.getElementById('q-text').textContent=q.q;
+  document.getElementById('fb-box').style.display='none';
+  var nb=document.getElementById('next-btn');
+  nb.style.display='none';nb.textContent='Next Question';
+  var g=document.getElementById('opts-grid');
+  g.innerHTML='';
+  q.opts.forEach(function(o,i){
+    var b=document.createElement('button');
+    b.className='opt-btn';b.textContent=o;
+    b.onclick=(function(idx){return function(){answer(idx);};})(i);
+    g.appendChild(b);
   });
-
-  // Feedback & next hidden
-  const fb = document.getElementById('feedbackBox');
-  fb.style.display = 'none';
-  fb.className = 'feedback-box';
-  document.getElementById('nextBtn').style.display = 'none';
+  setTimeout(speakQ,550);
 }
-
-function chooseAnswer(chosen) {
-  if (answered) return;
-  answered = true;
-
-  const q = questions[qIndex];
-  const correct = (chosen === q.ans);
-  if (correct) score++;
-
-  // Highlight buttons
-  const btns = document.querySelectorAll('.opt-btn');
-  btns.forEach((b, i) => {
-    b.disabled = true;
-    if (i === q.ans) b.classList.add('correct');
-    else if (i === chosen && !correct) b.classList.add('wrong');
+function speakQ(){
+  var q=qs[cur];
+  var L=['A','B','C','D'];
+  var s='Question '+(cur+1)+'. '+q.q+'  Your four options are: ';
+  q.opts.forEach(function(o,i){s+=L[i]+': '+o+'.  ';});
+  speak(s);
+}
+function answer(idx){
+  if(busy)return;busy=true;
+  var q=qs[cur];
+  var ok=(idx===q.ans);
+  if(ok)score++;
+  document.querySelectorAll('.opt-btn').forEach(function(b,i){
+    b.disabled=true;
+    if(i===q.ans)b.classList.add('correct');
+    else if(i===idx&&!ok)b.classList.add('wrong');
   });
-
-  // Feedback box
-  const fb = document.getElementById('feedbackBox');
-  fb.className = 'feedback-box ' + (correct ? 'correct-fb' : 'wrong-fb');
-  fb.style.display = 'block';
-
-  document.getElementById('fbReaction').textContent = correct ? '✅' : '❌';
-  document.getElementById('fbMessage').textContent  = correct ? q.praise : q.comfort;
-  document.getElementById('fbFact').textContent     = q.fact;
-
-  // Next button
-  const nextBtn = document.getElementById('nextBtn');
-  nextBtn.style.display = 'block';
-  const isLast = (qIndex === questions.length - 1);
-  nextBtn.textContent = isLast ? 'See My Score 🌟' : 'Next Question →';
-
-  // Scroll feedback into view
-  setTimeout(() => fb.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+  var emR=['&#127775;','&#127881;','&#10024;','&#127800;','&#127942;','&#11088;'];
+  var emW=['&#128144;','&#127804;','&#127808;','&#127803;'];
+  function rnd(a){return a[Math.floor(Math.random()*a.length)];}
+  var fb=document.getElementById('fb-box');
+  fb.className=ok?'correct':'wrong';
+  fb.innerHTML='<span class="fb-emoji">'+(ok?rnd(emR):rnd(emW))+'</span>'+'<div class="fb-main">'+(ok?q.praise:q.comfort)+'</div>'+'<div class="fb-fact">'+(ok?'':('The answer was: <strong>'+q.opts[q.ans]+'</strong>. '))+q.fact+'</div>';
+  fb.style.display='block';
+  var nb=document.getElementById('next-btn');
+  nb.style.display='block';
+  if(cur>=qs.length-1)nb.textContent='See My Results';
+  speak((ok?q.praise:q.comfort+' The correct answer was: '+q.opts[q.ans]+'. ')+q.fact);
 }
-
-document.getElementById('speakQBtn').addEventListener('click', () => {
-  speak(questions[qIndex].q);
-});
-
-document.getElementById('speakFbBtn').addEventListener('click', () => {
-  const q = questions[qIndex];
-  const msg = document.getElementById('fbMessage').textContent;
-  speak(msg + '. ' + q.fact);
-});
-
-document.getElementById('nextBtn').addEventListener('click', () => {
-  qIndex++;
-  if (qIndex >= questions.length) {
-    showResults();
-  } else {
-    renderQuestion();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-});
-
-// ══════════════════════════════════════════════
-//  RESULTS
-// ══════════════════════════════════════════════
-function showResults() {
-  stopSpeech();
-  const total = questions.length;
-  const pct = score / total;
-
-  document.getElementById('scoreNum').textContent   = score;
-  document.getElementById('scoreDenom').textContent = 'out of ' + total;
-
-  let title, msg;
-  if (pct === 1)        { title = 'Perfect score! 🌟'; msg = 'Full marks — what a wonderful result! You really know your ' + currentTopic.name + '.'; }
-  else if (pct >= 0.8)  { title = 'Excellent! 🎉';     msg = 'Very well done — that\'s a marvellous score! You clearly know your ' + currentTopic.name + ' beautifully.'; }
-  else if (pct >= 0.6)  { title = 'Well done! 😊';     msg = 'A lovely result — well done you! Shall we have another go and see if you can beat it?'; }
-  else if (pct >= 0.4)  { title = 'Good effort! 💐';   msg = 'Not a bad score at all — there\'s always something new to learn. Shall we try again?'; }
-  else                  { title = 'Keep trying! 🌸';   msg = 'Never mind — every quiz is a chance to learn something new. How about another round?'; }
-
-  document.getElementById('resultsTitle').textContent = title;
-  document.getElementById('resultsMsg').textContent   = msg;
-  show('results');
-   setTimeout(() => speak(title + ' ' + msg), 400);
+function nextQ(){window.speechSynthesis&&window.speechSynthesis.cancel();cur++;if(cur>=qs.length)endScreen();else renderQ();}
+function endScreen(){
+  show('s-end');
+  var p=score/qs.length;
+  var tr,h,m;
+  if(p>=0.9){tr='&#127942;';h='Absolutely Brilliant!';m=score+' out of '+qs.length+' — you really do know your stuff! What a wonderful score.';}
+  else if(p>=0.7){tr='&#11088;';h='Jolly Well Done!';m=score+' out of '+qs.length+' — a very impressive effort indeed. You should be very proud!';}
+  else if(p>=0.5){tr='&#127800;';h='Good Effort!';m=score+' out of '+qs.length+' — a lovely try. There were some tricky ones in there today!';}
+  else{tr='&#128144;';h='How Lovely You Played!';m=score+' out of '+qs.length+' — all good fun, and you will do even better next time!';}
+  document.getElementById('trophy-el').innerHTML=tr;
+  document.getElementById('end-h').textContent=h;
+  document.getElementById('fscore-el').textContent=score+'/'+qs.length;
+  document.getElementById('end-msg-el').textContent=m;
+  speak(h+' You scored '+score+' out of '+qs.length+'. '+m+'  Press Play Again whenever you are ready!');
 }
-
-document.getElementById('playAgainBtn').addEventListener('click', () => {
-  startTopic(currentTopic);
-});
-
-document.getElementById('chooseTopicBtn').addEventListener('click', () => {
-  stopSpeech();
-  show('topics');
-});
-</script>
-<script>(function(){function addRefreshBtn(){var q=document.getElementById('quiz')||document.querySelector('.quiz-container')||document.body;if(document.getElementById('refreshBtn'))return;var b=document.createElement('button');b.className='refresh-btn';b.id='refreshBtn';b.innerHTML='🔄 Refresh Questions';b.onclick=function(){if(typeof loadQuestions==='function')loadQuestions();else if(typeof fetchQuestions==='function')fetchQuestions();else window.location.reload();};q.appendChild(b);}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addRefreshBtn);else addRefreshBtn();})();</script>
-<script>
-(function(){const FL=['🌸','🌺','🌻','🌼','🌷','🌹','🪷','💐','🌿','🍃'];const bg=document.getElementById('flowerBg');if(bg){for(let i=0;i<18;i++){const e=document.createElement('span');e.className='petal';e.textContent=FL[Math.floor(Math.random()*FL.length)];e.style.cssText='left:'+(Math.random()*95)+'%;font-size:'+(2.4+Math.random()*2.8)+'rem;animation-duration:'+(16+Math.random()*18)+'s;animation-delay:'+(-Math.random()*24)+'s';bg.appendChild(e);}}})();
-(function(){let ctx,dest,playing=false,stopReq=false,ti=0;const B=0.48,V=0.11,_={R:0,G3:196,A3:220,B3:246.94,C4:261.63,D4:293.66,E4:329.63,F4:349.23,Fs4:369.99,G4:392,A4:440,B4:493.88,C5:523.25,Cs5:554.37,D5:587.33,E5:659.25,Fs5:739.99,G5:783.99,A5:880};
-const TUNES=[
-{name:'Bach — Minuet in G',n:[[_.G4,1],[_.A4,1],[_.B4,1],[_.G4,2],[_.R,1],[_.B4,1],[_.C5,1],[_.D5,1],[_.D5,2],[_.R,1],[_.E5,2],[_.D5,1],[_.C5,1],[_.B4,1],[_.A4,1],[_.B4,1],[_.C5,1],[_.A4,1],[_.A4,2],[_.R,1],[_.D5,2],[_.C5,1],[_.B4,1],[_.A4,1],[_.G4,1],[_.A4,2],[_.B4,1],[_.G4,2],[_.R,1],[_.C5,2],[_.B4,1],[_.A4,1],[_.B4,1],[_.C5,1],[_.D5,3],[_.R,3],[_.B4,2],[_.C5,1],[_.A4,2],[_.R,1],[_.D5,1],[_.C5,1],[_.B4,1],[_.A4,2],[_.R,1],[_.G4,1],[_.A4,1],[_.B4,1],[_.C5,1],[_.B4,1],[_.A4,1],[_.G4,3],[_.R,3]]},
-{name:'Pachelbel — Canon',n:[[_.Fs5,2],[_.E5,2],[_.D5,2],[_.Cs5,2],[_.B4,2],[_.A4,2],[_.B4,2],[_.Cs5,2],[_.D5,1],[_.E5,1],[_.Fs5,1],[_.G5,1],[_.Fs5,2],[_.E5,2],[_.D5,2],[_.E5,2],[_.Fs5,2],[_.D5,2],[_.G4,2],[_.A4,2],[_.B4,2],[_.Cs5,2],[_.D5,1],[_.Cs5,1],[_.B4,1],[_.A4,1],[_.G4,2],[_.Fs4,2],[_.G4,2],[_.A4,2],[_.D5,2],[_.E5,2],[_.Fs5,4],[_.R,4]]},
-{name:'Greensleeves',n:[[_.A3,1],[_.C4,1.5],[_.D4,.5],[_.E4,1.5],[_.F4,.5],[_.E4,1],[_.D4,1.5],[_.B3,.5],[_.G3,1],[_.B3,.5],[_.C4,.5],[_.D4,1.5],[_.E4,1.5],[_.C4,.5],[_.B3,1],[_.A3,1.5],[_.A3,1],[_.C4,1.5],[_.D4,.5],[_.E4,1.5],[_.F4,.5],[_.E4,1],[_.D4,1.5],[_.B3,.5],[_.G3,2],[_.E4,1.5],[_.D4,.5],[_.C4,1.5],[_.B3,.5],[_.A3,2],[_.C5,1.5],[_.B4,.5],[_.A4,1.5],[_.F4,.5],[_.G4,1.5],[_.E4,.5],[_.E4,1],[_.D4,1.5],[_.C4,.5],[_.D4,1.5],[_.E4,.5],[_.C4,1],[_.B3,1],[_.A3,2]]},
-{name:'Scarborough Fair',n:[[_.A3,2],[_.C4,1],[_.D4,2],[_.E4,2],[_.D4,2],[_.C4,1],[_.A3,2],[_.R,1],[_.A3,.5],[_.B3,.5],[_.C4,1],[_.B3,.5],[_.A3,.5],[_.G3,2],[_.R,1],[_.A3,2],[_.E4,1],[_.D4,2],[_.C4,.5],[_.D4,.5],[_.E4,2],[_.A4,2],[_.G4,1],[_.E4,2],[_.R,1],[_.D4,.5],[_.E4,.5],[_.F4,1],[_.E4,.5],[_.D4,.5],[_.C4,2],[_.A3,1],[_.R,1],[_.A3,3]]}
-];
-function setup(){ctx=new(window.AudioContext||window.webkitAudioContext)();const dl=ctx.createDelay(0.6),fb=ctx.createGain(),lp=ctx.createBiquadFilter(),wet=ctx.createGain(),dry=ctx.createGain(),mix=ctx.createGain();dl.delayTime.value=0.22;fb.gain.value=0.18;lp.frequency.value=1800;wet.gain.value=0.28;dry.gain.value=0.72;dl.connect(lp);lp.connect(fb);fb.connect(dl);dl.connect(wet);wet.connect(ctx.destination);mix.connect(dry);dry.connect(ctx.destination);mix.connect(dl);dest=mix;}
-function note(f,t,d){if(!f)return;const e=ctx.createGain();e.connect(dest);e.gain.setValueAtTime(0,t);e.gain.linearRampToValueAtTime(V,t+0.012);e.gain.exponentialRampToValueAtTime(V*0.45,t+0.18);e.gain.exponentialRampToValueAtTime(0.0001,t+d+0.35);[[1,.55],[2,.22],[3,.12],[4,.06]].forEach(([m,g])=>{const o=ctx.createOscillator(),gn=ctx.createGain();o.type='sine';o.frequency.value=f*m;gn.gain.value=g;o.connect(gn);gn.connect(e);o.start(t);o.stop(t+d+0.6);});}
-function playTune(tune){return new Promise(r=>{let t=ctx.currentTime+0.15;tune.n.forEach(([f,b])=>{note(f,t,b*B*0.88);t+=b*B;});setTimeout(r,(t-ctx.currentTime)*1000+900);});}
-async function loop(){while(!stopReq){const tune=TUNES[ti%TUNES.length];const l=document.getElementById('musicLabel');if(l)l.textContent=tune.name;await playTune(tune);if(!stopReq)ti++;await new Promise(r=>setTimeout(r,1400));}playing=false;}
-function start(){if(playing)return;if(!ctx)setup();if(ctx.state==='suspended')ctx.resume();playing=true;stopReq=false;loop();document.getElementById('musicToggle').textContent='🔇';}
-function stop(){stopReq=true;document.getElementById('musicToggle').textContent='🎵';const l=document.getElementById('musicLabel');if(l)l.textContent='Music off';}
-document.addEventListener('click',function h(e){if(e.target.closest('#beginBtn')){start();document.removeEventListener('click',h);}});
-document.getElementById('musicToggle').addEventListener('click',e=>{e.stopPropagation();playing?stop():start();});
-})();
+function reset(){
+  window.speechSynthesis&&window.speechSynthesis.cancel();
+  topic=null;
+  document.querySelectorAll('.topic-btn').forEach(function(b){b.classList.remove('sel');});
+  document.getElementById('start-btn').disabled=true;
+  show('s-topic');
+}
 </script>
 </body>
 </html>
